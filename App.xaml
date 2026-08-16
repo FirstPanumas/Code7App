@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:conv="clr-namespace:Code7App.Converters"
+             x:Class="Code7App.App">
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <conv:IsNullConverter x:Key="IsNullConverter" />
+            <Color x:Key="Primary">#2B0B98</Color>
+            <Color x:Key="SidebarBgColor">#265267</Color>
+            <Color x:Key="SidebarHoverColor">#1E4355</Color>
+            <Color x:Key="MainBgColor">#EAECEE</Color>
+            <Color x:Key="ModalHeaderColor">#17859F</Color>
+            <Color x:Key="BorderColor">#CCCCCC</Color>
+            <Color x:Key="AccentRedColor">#D32F2F</Color>
+
+            <!-- 1. บังคับ Text สีดำสำหรับทุก Control พื้นฐาน -->
+            <Style TargetType="Label">
+                <Setter Property="TextColor" Value="Black" />
+                <Setter Property="FontFamily" Value="OpenSansRegular" />
+            </Style>
+            <Style TargetType="Entry">
+                <Setter Property="TextColor" Value="Black" />
+            </Style>
+            <Style TargetType="SearchBar">
+                <Setter Property="TextColor" Value="Black" />
+            </Style>
+            <Style TargetType="Picker">
+                <Setter Property="TextColor" Value="Black" />
+            </Style>
+            <Style TargetType="DatePicker">
+                <Setter Property="TextColor" Value="Black" />
+            </Style>
+
+            <!-- 2. Global Style สำหรับ Button (รวม Text สีดำ และ Action Hover/Pressed) -->
+            <Style TargetType="Button">
+                <Setter Property="TextColor" Value="Black" />
+                <Setter Property="VisualStateManager.VisualStateGroups">
+                    <VisualStateGroupList>
+                        <VisualStateGroup x:Name="CommonStates">
+                            <VisualState x:Name="Normal">
+                                <VisualState.Setters>
+                                    <Setter Property="Opacity" Value="1.0" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <!-- Action: นำเมาส์ไปชี้ (Hover) -->
+                            <VisualState x:Name="PointerOver">
+                                <VisualState.Setters>
+                                    <Setter Property="Opacity" Value="0.85" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <!-- Action: เมื่อคลิก (Pressed) -->
+                            <VisualState x:Name="Pressed">
+                                <VisualState.Setters>
+                                    <Setter Property="Opacity" Value="0.65" />
+                                    <Setter Property="Scale" Value="0.98" />
+                                    <!-- ย่อขนาดลงเล็กน้อยให้ดูมีมิติ -->
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </Setter>
+            </Style>
+
+            <!-- Custom Entry Style เดิม -->
+            <Style x:Key="BottomLineEntryStyle" TargetType="Border">
+                <Setter Property="Stroke" Value="{StaticResource BorderColor}" />
+                <Setter Property="StrokeThickness" Value="1" />
+                <Setter Property="Padding" Value="0,0,0,5" />
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
