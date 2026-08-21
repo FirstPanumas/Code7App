@@ -3,6 +3,7 @@ using Code7App.ViewModels;
 using Code7App.Views;
 using Microsoft.Extensions.Logging;
 using CommunityToolkit.Maui;
+
 namespace Code7App;
 
 public static class MauiProgram
@@ -27,10 +28,18 @@ public static class MauiProgram
         // Register ViewModels
         builder.Services.AddSingleton<MainViewModel>();
         builder.Services.AddSingleton<SettingsViewModel>();
+        builder.Services.AddTransient<OrderViewModel>();
+
 
         // Register Views
         builder.Services.AddSingleton<MainPage>();
         builder.Services.AddSingleton<SettingsPage>();
+        builder.Services.AddTransient<OrderPage>();
+
+
+        // ลงทะเบียน Route สำหรับหน้า OrderPage
+        Routing.RegisterRoute(nameof(OrderPage), typeof(Code7App.Views.OrderPage));
+
 
 #if DEBUG
         builder.Logging.AddDebug();

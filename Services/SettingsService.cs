@@ -1,5 +1,6 @@
-﻿using System.Text.Json;
-using Code7App.Models;
+﻿using Code7App.Models;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 
 namespace Code7App.Services;
 
@@ -10,26 +11,33 @@ public class SettingsService : ISettingsService
 
     public SettingsService()
     {
-        // กำหนด Path มาตรฐานที่ระบบ OS อนุญาตให้อ่าน/เขียนไฟล์ได้
         _settingsFilePath = Path.Combine(FileSystem.AppDataDirectory, "TotalSettings.json");
-        _jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+        _jsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
     }
 
     public async Task<AppConfig> LoadSettingsAsync()
     {
-        if (!File.Exists(_settingsFilePath))
-            return new AppConfig(); // ส่งคืนค่าว่าง (Default) หากยังไม่มีไฟล์
 
+        // หากไม่มีไฟล์ ให้สร้างไฟล์ Default ขึ้นมาทันที
+        if (!File.Exists(_settingsFilePath))
+        {
+            var defaultConfig = new AppConfig();
+            await SaveSettingsAsync(defaultConfig);
+            return defaultConfig;
+        }
         try
         {
-            using var stream = File.OpenRead(_settingsFilePath);
-            var config = await JsonSerializer.DeserializeAsync<AppConfig>(stream, _jsonOptions);
-            return config ?? new AppConfig();
+            using var stream = File.OpenRead(_settingsFilePath); 
+            var config = await JsonSerializer.DeserializeAsync<AppConfig>(stream, _jsonOptions);  
+            return config ?? new AppConfig();  
         }
         catch (Exception)
         {
-            // หากไฟล์ Corrupt หรือ JSON ผิดรูปแบบ ให้คืนค่าเริ่มต้น
-            return new AppConfig();
+            return new AppConfig(); 
         }
     }
 

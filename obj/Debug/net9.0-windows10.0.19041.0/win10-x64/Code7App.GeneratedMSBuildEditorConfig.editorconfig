@@ -57,6 +57,12 @@ build_metadata.AdditionalFiles.ManifestResourceName = Code7App.Views.MainPage.xa
 build_metadata.AdditionalFiles.TargetPath = Views\MainPage.xaml
 build_metadata.AdditionalFiles.RelativePath = Views\MainPage.xaml
 
+[C:/Users/Lenovo/source/repos/FirstPanumas/Code7App/Views/OrderPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = Code7App.Views.OrderPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\OrderPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\OrderPage.xaml
+
 [C:/Users/Lenovo/source/repos/FirstPanumas/Code7App/Views/SettingsPage.xaml]
 build_metadata.AdditionalFiles.GenKind = Xaml
 build_metadata.AdditionalFiles.ManifestResourceName = Code7App.Views.SettingsPage.xaml

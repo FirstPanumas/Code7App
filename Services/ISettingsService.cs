@@ -1,5 +1,4 @@
 ﻿using Code7App.Models;
-
 namespace Code7App.Services;
 
 public interface ISettingsService

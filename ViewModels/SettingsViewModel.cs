@@ -79,4 +79,14 @@ public partial class SettingsViewModel : ObservableObject
             OnPropertyChanged(nameof(Config));
         }
     }
+    [RelayCommand]
+    private void OpenSettingsFolder()
+    {
+        var folderPath = FileSystem.AppDataDirectory;
+
+        // สั่งเปิด Windows Explorer ตรงไปยังโฟลเดอร์ที่เก็บไฟล์ TotalSettings.json
+#if WINDOWS
+    System.Diagnostics.Process.Start("explorer.exe", folderPath);
+#endif
+    }
 }

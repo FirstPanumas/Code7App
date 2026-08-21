@@ -18,7 +18,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Code7App")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0+767f82c462cfda3aac3f23a69ef45aaa8dd01f82")]
 [assembly: System.Reflection.AssemblyProductAttribute("Code7App")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Code7App")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
