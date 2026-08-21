@@ -4,7 +4,7 @@ using Code7App.Messages;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
-using Microsoft.Maui.Graphics; // สำคัญ: ใช้สำหรับ Colors.Black
+using Microsoft.Maui.Graphics;
 
 namespace Code7App.Views;
 
@@ -25,8 +25,25 @@ public partial class MainPage : ContentPage
             {
                 try
                 {
+                    // 🌟 1. สร้าง TaskCompletionSource เพื่อดักรอ Event Navigated
+                    var tcs = new TaskCompletionSource<bool>();
+
+                    void OnNavigated(object? sender, WebNavigatedEventArgs e)
+                    {
+                        PrintHelperWebView.Navigated -= OnNavigated;
+                        tcs.TrySetResult(true);
+                    }
+
+                    PrintHelperWebView.Navigated += OnNavigated;
+
+                    // 2. นำข้อมูล HTML ใส่เข้าไปใน WebView
                     PrintHelperWebView.Source = new HtmlWebViewSource { Html = m.HtmlContent };
-                    await Task.Delay(1000);
+
+                    // 🌟 3. รอจนกว่า WebView จะโหลด HTML เสร็จ (หรือ Timeout 5 วินาทีป้องกันแอปค้าง)
+                    await Task.WhenAny(tcs.Task, Task.Delay(5000));
+
+                    // 🌟 4. หน่วงเวลาเพิ่มอีกเล็กน้อย เพื่อให้ WebView2 เรนเดอร์ UI และ CSS ลง DOM จนสมบูรณ์
+                    await Task.Delay(500);
 
 #if WINDOWS
                     if (PrintHelperWebView.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.WebView2 webView2)
@@ -37,9 +54,10 @@ public partial class MainPage : ContentPage
                         string filePath = Path.Combine(FileSystem.CacheDirectory, fileName);
 
                         var printSettings = webView2.CoreWebView2.Environment.CreatePrintSettings();
+                        
                         printSettings.Orientation = Microsoft.Web.WebView2.Core.CoreWebView2PrintOrientation.Landscape;
-                        printSettings.PageWidth = 5.827;
-                        printSettings.PageHeight = 8.268;
+                        printSettings.PageWidth = 8.268;
+                        printSettings.PageHeight = 5.827;
                         printSettings.ShouldPrintBackgrounds = true;
 
                         bool isSuccess = await webView2.CoreWebView2.PrintToPdfAsync(filePath, printSettings);
@@ -67,7 +85,6 @@ public partial class MainPage : ContentPage
     {
         base.OnAppearing();
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
-
         await _viewModel.InitializeAsync();
     }
 
@@ -99,7 +116,6 @@ public partial class MainPage : ContentPage
         CsvHeaderGrid.ColumnDefinitions.Clear();
         CsvHeaderGrid.Children.Clear();
 
-        // 🌟 1. สร้าง Header พร้อมบังคับ TextColor = Colors.Black
         for (int i = 0; i < columns.Count; i++)
         {
             CsvHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
@@ -114,7 +130,6 @@ public partial class MainPage : ContentPage
             CsvHeaderGrid.Add(headerLabel, i, 0);
         }
 
-        // 🌟 2. สร้าง DataTemplate พร้อมบังคับ TextColor = Colors.Black
         CsvDataGrid.ItemTemplate = new DataTemplate(() =>
         {
             var rowGrid = new Grid { Padding = new Thickness(10) };
@@ -174,11 +189,6 @@ public partial class MainPage : ContentPage
             }
             return rowGrid;
         });
-    }
-
-    private async void OnSettingsClicked(object sender, EventArgs e)
-    {
-        await Shell.Current.GoToAsync(nameof(SettingsPage));
     }
 
     public class StringToBoolConverter : IValueConverter

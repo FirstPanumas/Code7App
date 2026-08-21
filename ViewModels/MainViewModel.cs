@@ -14,9 +14,8 @@ public partial class MainViewModel : ObservableObject
 {
     private readonly ISettingsService _settingsService;
 
-    // --- ตัวแปรสำหรับเก็บข้อมูลทั้งหมดก่อนแบ่งหน้า/ค้นหา ---
     private List<Dictionary<string, string>> _allCsvRows = new();
-    private const int PageSize = 100; // จำนวนแถวต่อหน้า
+    private const int PageSize = 100;
 
     // --- 1. Configuration & App State ---
     [ObservableProperty]
@@ -24,6 +23,8 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isLoading;
+
+    private bool _isInitialized = false;
 
     // --- 2. Data Grid & Pagination ---
     [ObservableProperty]
@@ -53,7 +54,6 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<string> _filterOptions = [];
     [ObservableProperty] private string _searchResultMessage = string.Empty;
 
-    // ใช้ Full Property เพื่อดักจับ SetProperty แทนการใช้ partial void
     private string _searchText = string.Empty;
     public string SearchText
     {
@@ -62,7 +62,7 @@ public partial class MainViewModel : ObservableObject
         {
             if (SetProperty(ref _searchText, value))
             {
-                CurrentPage = 1; // รีเซ็ตไปหน้าแรกเสมอเมื่อพิมพ์ค้นหา
+                CurrentPage = 1;
                 ApplyFilters();
             }
         }
@@ -104,27 +104,30 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private string _dx = string.Empty;
     [ObservableProperty] private string _allergy = string.Empty;
+    [ObservableProperty] private string _payor = string.Empty;
 
     public MainViewModel(ISettingsService settingsService)
     {
         _settingsService = settingsService;
     }
 
-    // เรียกใช้ตอน OnAppearing ของ MainPage
     public async Task InitializeAsync()
     {
+        if (_isInitialized) return;
+
         IsLoading = true;
         try
         {
             CurrentConfig = await _settingsService.LoadSettingsAsync() ?? new AppConfig();
             LoadDropdownConfigs();
 
-            // โหลดข้อมูล CSV จาก Setting ทันทีที่เปิดหน้า
             string defaultPath = CurrentConfig.PatientRegister.DefaultPath;
             if (!string.IsNullOrWhiteSpace(defaultPath) && File.Exists(defaultPath))
             {
                 await LoadCsvDataAsync(defaultPath);
             }
+
+            _isInitialized = true;
         }
         finally
         {
@@ -134,12 +137,20 @@ public partial class MainViewModel : ObservableObject
 
     private void LoadDropdownConfigs()
     {
+        // โหลดข้อมูลแผนกและแพทย์
         var deptConfig = CurrentConfig.PatientRegister.DepartmentList ?? "OPD, IPD";
         var docConfig = CurrentConfig.PatientRegister.DoctorList ?? "-";
 
         var depts = deptConfig.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var docs = docConfig.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                           .Where(d => d != "-").ToArray();
+
+        // 🌟 เพิ่มการโหลดข้อมูล Filter ของหน้า MainPage
+        string filterColConfig = CurrentConfig.PatientRegister.DropdownColumn?.Trim() ?? string.Empty;
+        string dropdownListSetting = CurrentConfig.PatientRegister.DropdownList ?? string.Empty;
+
+        var filterOpts = dropdownListSetting.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+        filterOpts.Insert(0, "ทั้งหมด");
 
         MainThread.BeginInvokeOnMainThread(() =>
         {
@@ -148,10 +159,19 @@ public partial class MainViewModel : ObservableObject
 
             DoctorItems = new ObservableCollection<string>(docs);
             if (DoctorItems.Any()) Doctor = DoctorItems.First();
+
+            // 🌟 ตั้งค่า Filter UI
+            FilterLabel = !string.IsNullOrWhiteSpace(filterColConfig) ? filterColConfig : "ตัวกรอง";
+            FilterOptions = new ObservableCollection<string>(filterOpts);
+            if (FilterOptions.Any())
+            {
+                // เลี่ยงการใช้ Setter ที่จะ Trigger ค้นหาซ้ำซ้อนตอนเริ่มต้น
+                _selectedFilterValue = FilterOptions[0];
+                OnPropertyChanged(nameof(SelectedFilterValue));
+            }
         });
     }
 
-    // ระบบอ่านไฟล์ CSV และประมวลผล (ทำงานบน Background Thread เพื่อไม่ให้ UI ค้าง)
     private async Task LoadCsvDataAsync(string filePath)
     {
         try
@@ -179,14 +199,40 @@ public partial class MainViewModel : ObservableObject
                 }
 
                 _allCsvRows = tempRows;
+                string filterCol = CurrentConfig.PatientRegister?.DropdownColumn ?? string.Empty;
+                string dropdownSetting = CurrentConfig.PatientRegister?.DropdownList ?? string.Empty;
 
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    // 🌟 แก้ไขตรงนี้: สร้าง Instance ใหม่แทนการ Clear/Add เพื่อบังคับให้ PropertyChanged ทำงาน
                     CsvColumns = new ObservableCollection<string>(headers);
 
+                    var options = new List<string>();
+                    if (!string.IsNullOrWhiteSpace(dropdownSetting))
+                    {
+                        options = dropdownSetting.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                    }
+                    else if (!string.IsNullOrWhiteSpace(filterCol) && headers.Contains(filterCol, StringComparer.OrdinalIgnoreCase))
+                    {
+                        // 🌟 ดึงข้อมูลหมวดหมู่ที่ไม่ซ้ำกันจากข้อมูลดิบ
+                        options = _allCsvRows.Select(row => row.GetValueOrDefault(filterCol, string.Empty))
+                                             .Where(val => !string.IsNullOrWhiteSpace(val))
+                                             .Distinct()
+                                             .OrderBy(val => val)
+                                             .ToList();
+                    }
+
+                    options.Insert(0, "ทั้งหมด");
+                    FilterOptions = new ObservableCollection<string>(options);
+                    FilterLabel = !string.IsNullOrWhiteSpace(filterCol) ? filterCol : "ตัวกรอง";
+
+                    // เซ็ตค่าเริ่มต้น
+                    _selectedFilterValue = options.First();
+                    OnPropertyChanged(nameof(SelectedFilterValue));
+
                     CurrentPage = 1;
-                    SearchText = string.Empty;
+                    _searchText = string.Empty;
+                    OnPropertyChanged(nameof(SearchText));
+
                     ApplyFilters();
                 });
             });
@@ -225,11 +271,19 @@ public partial class MainViewModel : ObservableObject
         return result.ToArray();
     }
 
-    // ระบบคัดกรองข้อมูล ค้นหา และคำนวณหน้า (Pagination)
     private void ApplyFilters()
     {
         IEnumerable<Dictionary<string, string>> query = _allCsvRows;
 
+        string filterCol = CurrentConfig.PatientRegister?.DropdownColumn ?? string.Empty;
+
+        // 🌟 กรองข้อมูลจาก Dropdown
+        if (!string.IsNullOrEmpty(SelectedFilterValue) && SelectedFilterValue != "ทั้งหมด" && !string.IsNullOrEmpty(filterCol))
+        {
+            query = query.Where(row => row.TryGetValue(filterCol, out string? val) && val != null && val.Equals(SelectedFilterValue, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // 🌟 กรองข้อมูลจากช่องค้นหา
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
             var keyword = SearchText.Trim().ToLower();
@@ -278,7 +332,6 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    // --- Commands สำหรับ Data Grid ---
     [RelayCommand]
     private async Task OpenCsv()
     {
@@ -339,7 +392,6 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    // --- Command นำทางไป OrderPage พร้อมส่ง Parameter ---
     [RelayCommand]
     private async Task OpenOrderPage()
     {
@@ -361,7 +413,6 @@ public partial class MainViewModel : ObservableObject
         await Shell.Current.GoToAsync(nameof(OrderPage), navParams);
     }
 
-    // --- Commands สำหรับ Register Modal ---
     [RelayCommand]
     private void OpenRegisterModal()
     {
@@ -373,6 +424,7 @@ public partial class MainViewModel : ObservableObject
 
         Dx = string.Empty;
         Allergy = string.Empty;
+        Payor = string.Empty;
         AppointmentDate = DateTime.Today;
         SelectedHour = DateTime.Now.ToString("HH");
         SelectedMinute = DateTime.Now.ToString("mm");
@@ -387,6 +439,7 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+  
     private void PrintRegistration()
     {
         var patientInfoBuilder = new System.Text.StringBuilder();
@@ -409,7 +462,8 @@ public partial class MainViewModel : ObservableObject
         <head>
             <meta charset='utf-8'>
             <style>
-                @page {{ size: A4 portrait; margin: 1.5cm; }}
+                /* 🌟 ปรับ CSS สำหรับ A5 แนวนอน */
+                @page {{ size: A5 landscape; margin: 1.0cm; }}
                 body {{
                     font-family: 'Cordia New', 'Leelawadee UI', 'Segoe UI', sans-serif;
                     font-size: 14px; 
@@ -421,7 +475,7 @@ public partial class MainViewModel : ObservableObject
                 h2 {{ text-align: center; font-size: 18px; margin-bottom: 5px; }}
                 hr {{ border: 0; border-top: 1px solid #ccc; margin: 8px 0; }}
                 table {{ width: 100%; border-collapse: collapse; }}
-                td {{ padding: 3px 0; vertical-align: top; }}
+                td {{ padding: 4px 0; vertical-align: top; }}
                 .label-col {{ width: 120px; white-space: nowrap; font-weight: bold; }}
                 .colon-col {{ width: 15px; text-align: center; }}
                 .value-col {{ width: auto; }}
@@ -438,6 +492,14 @@ public partial class MainViewModel : ObservableObject
                     <td class='value-col'>{AppointmentDate:dd/MM/yyyy} &nbsp;&nbsp;&nbsp;&nbsp; เวลา / Time : {SelectedHour}:{SelectedMinute} น.</td>
                 </tr>
                 {patientInfoBuilder}
+
+
+                 <tr >
+                <tr>
+                    <td class='label-col'>Payer</td>
+                    <td class='colon-col'>:</td>
+                    <td class='value-col'>{(string.IsNullOrEmpty(Payor) ? "-" : Payor)}</td>
+                </tr>
                 <tr>
                     <td class='label-col'>อาการเบื้องต้น</td>
                     <td class='colon-col'>:</td>

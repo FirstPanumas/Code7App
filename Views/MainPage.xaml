@@ -140,8 +140,9 @@
             <!-- FOOTER -->
             <Grid Grid.Row="2" Padding="20" BackgroundColor="#F5F5F5">
                 <HorizontalStackLayout HorizontalOptions="End" Spacing="15">
-                    <Button Text="สร้าง Order" Command="{Binding OpenOrderPageCommand}" BackgroundColor="#17859F" TextColor="White" />
-                    <Button Text="สร้าง Form Register" Command="{Binding OpenRegisterModalCommand}" BackgroundColor="{StaticResource ModalHeaderColor}" TextColor="White" />
+                    <Button Text="สร้างเอกสาร Register" Command="{Binding OpenRegisterModalCommand}" BackgroundColor="{StaticResource ModalHeaderColor}" TextColor="White" />
+                    <Button Text="สร้างเอกสาร Order" Command="{Binding OpenOrderPageCommand}" BackgroundColor="#17859F" TextColor="White" />
+                    
                 </HorizontalStackLayout>
             </Grid>
         </Grid>
@@ -274,6 +275,7 @@
                                         </Border>
                                     </VerticalStackLayout>
                                 </Grid>
+                                
                             </Grid>
 
                             <Grid ColumnDefinitions="*, *" ColumnSpacing="20">
@@ -311,27 +313,42 @@
                                 </VerticalStackLayout>
 
                             </Grid>
-
+                            <VerticalStackLayout Spacing="5" Margin="0,10,0,0">
+                                <Label Text="Payer *" FontSize="12" TextColor="Gray" />
+                                <Border Stroke="{StaticResource BorderColor}" StrokeThickness="1" BackgroundColor="White" HeightRequest="40">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="4" />
+                                    </Border.StrokeShape>
+                                    <Entry Text="{Binding Payor, Mode=TwoWay}" 
+                                   Placeholder="ระบุชื่อ Payor..." 
+                                   TextColor="Black" 
+                                   BackgroundColor="Transparent"
+                                   Margin="10,0" />
+                                                        </Border>
+                            </VerticalStackLayout>
                         </VerticalStackLayout>
                     </ScrollView>
 
                     <!-- Modal Footer (แก้ไขเพิ่ม Grid.Row="2" และจัด Padding ใหม่) -->
-                    <Grid Grid.Row="2" ColumnDefinitions="*, *" ColumnSpacing="10" Padding="30,10" BackgroundColor="#F5F5F5">
+                    <Grid Grid.Row="2" ColumnDefinitions="Auto, *" ColumnSpacing="15" Padding="30,10" BackgroundColor="#F5F5F5">
                         <Button Grid.Column="0"
                                 Text="Cancel" 
                                 Command="{Binding CloseRegisterModalCommand}" 
-                                BackgroundColor="LightGray" 
+                                BackgroundColor="#E0E0E0" 
                                 TextColor="Black" 
-                                CornerRadius="4" />
+                                HeightRequest="50"
+                                WidthRequest="100"
+                                FontAttributes="Bold"
+                                CornerRadius="8" />
 
                         <Button Grid.Column="1"
-                                Text="Print" 
+                                Text="🖨️ สั่งพิมพ์" 
                                 Command="{Binding PrintRegistrationCommand}" 
-                                ImageSource="printer.png"
-                                ContentLayout="Left, 8"
-                                BackgroundColor="#2B0B98" 
+                                BackgroundColor="#17859F" 
                                 TextColor="White" 
-                                CornerRadius="4" />
+                                HeightRequest="50"
+                                FontAttributes="Bold"
+                                CornerRadius="8" />
                     </Grid>
 
                 </Grid>

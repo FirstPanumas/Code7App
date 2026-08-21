@@ -330,14 +330,31 @@ public partial class OrderViewModel : ObservableObject
                 {
                     FilterLabel = !string.IsNullOrWhiteSpace(filterColConfig) ? filterColConfig : "ตัวกรอง";
 
-                    var options = dropdownListSetting.Split(',')
-                        .Select(s => s.Trim())
-                        .Where(s => !string.IsNullOrEmpty(s))
-                        .ToList();
+                    var options = new List<string>();
+
+                    // 🌟 1. ตรวจสอบว่ามีการตั้งค่า DropdownList ไว้หรือไม่
+                    if (!string.IsNullOrWhiteSpace(dropdownListSetting))
+                    {
+                        options = dropdownListSetting.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                    }
+                    // 🌟 2. ถ้าไม่มี ให้สกัดข้อมูลที่ไม่ซ้ำกันจาก CSV อัตโนมัติ
+                    else if (!string.IsNullOrWhiteSpace(filterColConfig))
+                    {
+                        options = _allOrders.Select(o => o.FilterValue)
+                                            .Where(v => !string.IsNullOrWhiteSpace(v))
+                                            .Distinct()
+                                            .OrderBy(v => v)
+                                            .ToList();
+                    }
 
                     options.Insert(0, "ทั้งหมด");
                     FilterOptions = new ObservableCollection<string>(options);
-                    SelectedFilterValue = options.Count > 1 ? options[1] : options[0];
+
+                    // เซ็ตค่า Backing field โดยตรงเพื่อลดการยิง Event ซ้ำซ้อน
+                    _selectedFilterValue = options.First();
+                    OnPropertyChanged(nameof(SelectedFilterValue));
+
+                    FilterOrders();
                 });
             });
 
@@ -573,4 +590,40 @@ public partial class OrderViewModel : ObservableObject
 
         WeakReferenceMessenger.Default.Send(new PrintHtmlMessage(printContent));
     }
+
+    [RelayCommand]
+    private async Task OpenCsv()
+    {
+        try
+        {
+            var customFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+            {
+                { DevicePlatform.WinUI, new[] { ".csv" } },
+                { DevicePlatform.Android, new[] { "text/csv" } },
+                { DevicePlatform.iOS, new[] { "public.comma-separated-values-text" } },
+                { DevicePlatform.MacCatalyst, new[] { "public.comma-separated-values-text" } }
+            });
+
+            var result = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "เลือกไฟล์ CSV รายการ Order",
+                FileTypes = customFileType
+            });
+
+            if (result != null)
+            {
+                CsvPath = result.FullPath;
+                await LoadOrderItemsAsync(result.FullPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            if (Application.Current?.MainPage != null)
+            {
+                await Application.Current.MainPage.DisplayAlert("แจ้งเตือน", $"ไม่สามารถเปิดไฟล์ได้: {ex.Message}", "ตกลง");
+            }
+        }
+    }
+
+   
 }
