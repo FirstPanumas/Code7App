@@ -63,11 +63,11 @@ public partial class MainViewModel : ObservableObject
         set { if (SetProperty(ref _useDobFilter, value)) { CurrentPage = 1; ApplyFilters(); } }
     }
 
-    private DateTime _filterDob = DateTime.Today;
-    public DateTime FilterDob
+    private string _filterDobText = string.Empty;
+    public string FilterDobText
     {
-        get => _filterDob;
-        set { if (SetProperty(ref _filterDob, value)) { if (UseDobFilter) { CurrentPage = 1; ApplyFilters(); } } }
+        get => _filterDobText;
+        set { if (SetProperty(ref _filterDobText, value)) { if (UseDobFilter) { CurrentPage = 1; ApplyFilters(); } } }
     }
 
     [ObservableProperty] private ObservableCollection<PatientDetailModel> _displayPatientDetails = [];
@@ -83,7 +83,8 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _doctor = string.Empty;
     [ObservableProperty] private string _dx = string.Empty;
     [ObservableProperty] private string _allergy = string.Empty;
-    [ObservableProperty] private string _payer = string.Empty;
+    [ObservableProperty] private string _payor = string.Empty;
+    [ObservableProperty] private string _remark = string.Empty;
 
     public MainViewModel(ISettingsService settingsService)
     {
@@ -261,27 +262,40 @@ public partial class MainViewModel : ObservableObject
             query = query.Where(row => row.TryGetValue(filterCol, out string? val) && val != null && val.Equals(SelectedFilterValue, StringComparison.OrdinalIgnoreCase));
         }
 
-        // 🌟 2. กรองด้วย วันเกิด (บังคับ Format M/d/yyyy และ ค.ศ.)
-        if (UseDobFilter && !string.IsNullOrEmpty(dobCol))
+        // 🌟 2. กรองด้วย วันเกิด (รองรับการพิมพ์ข้อความ วัน/เดือน/ปี)
+        if (UseDobFilter && !string.IsNullOrEmpty(dobCol) && !string.IsNullOrWhiteSpace(FilterDobText))
         {
-            // สร้าง CultureInfo แบบ en-US เพื่อบังคับอ่านเป็น ค.ศ.
             var enUSCulture = new System.Globalization.CultureInfo("en-US");
+            string userInput = FilterDobText.Trim();
 
-            // รองรับความคลาดเคลื่อนของการพิมพ์ M/D/Y (เช่น 1/1/2026 หรือ 01/01/2026)
-            string[] expectedFormats = { "M/d/yyyy", "MM/dd/yyyy", "M/dd/yyyy", "MM/d/yyyy" };
+            // รูปแบบที่คาดหวังให้ผู้ใช้พิมพ์เข้ามา
+            string[] userFormats = { "d/M/yyyy", "dd/MM/yyyy", "d/MM/yyyy", "dd/M/yyyy", "M/d/yyyy" };
+            bool isUserDateValid = DateTime.TryParseExact(userInput, userFormats, enUSCulture, System.Globalization.DateTimeStyles.None, out DateTime userDate);
 
             query = query.Where(row =>
             {
                 if (row.TryGetValue(dobCol, out string? val) && !string.IsNullOrWhiteSpace(val))
                 {
-                    if (DateTime.TryParseExact(val.Trim(), expectedFormats, enUSCulture, System.Globalization.DateTimeStyles.None, out DateTime csvDate))
+                    val = val.Trim();
+
+                    // แปลงวันที่จากไฟล์ CSV
+                    if (DateTime.TryParse(val, enUSCulture, System.Globalization.DateTimeStyles.None, out DateTime csvDate))
                     {
-                        return csvDate.Date == FilterDob.Date;
+                        if (isUserDateValid)
+                        {
+                            // กรณีผู้ใช้พิมพ์ครบถ้วน ถูกรูปแบบเป๊ะ
+                            return csvDate.Date == userDate.Date;
+                        }
+                        else
+                        {
+                            // กรณีพิมพ์แค่บางส่วน เช่น "1997", "06/1997", "20/06" ให้เทียบแบบ String Contains
+                            string csvFormattedStr = csvDate.ToString("dd/MM/yyyy", enUSCulture);
+                            return csvFormattedStr.Contains(userInput);
+                        }
                     }
 
-                    // Fallback กรณี String ไม่ตรงมาตรฐานเลย
-                    return val.Contains(FilterDob.ToString("M/d/yyyy", enUSCulture)) ||
-                           val.Contains(FilterDob.ToString("MM/dd/yyyy", enUSCulture));
+                    // Fallback กรณีข้อมูลใน CSV พังหรือไม่ใช่วันที่
+                    return val.Contains(userInput);
                 }
                 return false;
             });
@@ -393,7 +407,8 @@ public partial class MainViewModel : ObservableObject
 
         Dx = string.Empty;
         Allergy = string.Empty;
-        Payer = string.Empty;
+        Payor = string.Empty;
+        Remark = string.Empty;
         AppointmentDate = DateTime.Today;
         SelectedHour = DateTime.Now.ToString("HH");
         SelectedMinute = DateTime.Now.ToString("mm");
@@ -453,9 +468,9 @@ public partial class MainViewModel : ObservableObject
                 </tr>
                 {patientHtmlRows}
                 <tr>
-                    <td class='label-col'>Payer</td>
+                    <td class='label-col'>Payor</td>
                     <td class='colon-col'>:</td>
-                    <td class='value-col'>{(string.IsNullOrEmpty(Payer) ? "-" : Payer)}</td>
+                    <td class='value-col'>{(string.IsNullOrEmpty(Payor) ? "-" : Payor)}</td>
                 </tr>
                 <tr>
                     <td class='label-col'>อาการเบื้องต้น</td>
@@ -477,12 +492,48 @@ public partial class MainViewModel : ObservableObject
                     <td class='colon-col'>:</td>
                     <td class='value-col'>{Doctor}</td>
                 </tr>
+                <tr>
+                    <td class='label-col'>หมายเหตุ (Remark)</td>
+                    <td class='colon-col'>:</td>
+                    <td class='value-col'>{(string.IsNullOrEmpty(Remark) ? "-" : Remark)}</td>
+                </tr>
             </table>
             <hr/>
-            <div class='footer'>*** กรุณานำใบนี้มายื่นที่หน้าเคาน์เตอร์ ***</div>
+            <div class='footer'>*** - ***</div>
         </body>
         </html>";
 
         WeakReferenceMessenger.Default.Send(new PrintHtmlMessage(printContent));
     }
+
+    public async Task ReloadSettingsAsync()
+    {
+        var newConfig = await _settingsService.LoadSettingsAsync();
+        if (newConfig != null)
+        {
+            CurrentConfig = newConfig;
+        }
+
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            if (CurrentConfig?.PatientRegister == null) return;
+
+            string deptConfig = CurrentConfig.PatientRegister.DepartmentList ?? string.Empty;
+            string docConfig = CurrentConfig.PatientRegister.DoctorList ?? string.Empty;
+
+            var depts = deptConfig.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var docs = docConfig.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Where(d => d != "-");
+
+            // สร้าง Instance ใหม่ เพื่อบังคับให้ Picker อัปเดต UI
+            DepartmentItems = new ObservableCollection<string>(depts);
+            DoctorItems = new ObservableCollection<string>(docs);
+
+            if (DepartmentItems.Any() && !DepartmentItems.Contains(Department))
+                Department = DepartmentItems.FirstOrDefault() ?? string.Empty;
+
+            if (DoctorItems.Any() && !DoctorItems.Contains(Doctor))
+                Doctor = DoctorItems.FirstOrDefault() ?? string.Empty;
+        });
+    }
+
 }

@@ -13,6 +13,7 @@ namespace Code7App.ViewModels;
 public partial class OrderViewModel : ObservableObject
 {
     private readonly ISettingsService _settingsService;
+    [ObservableProperty] private string _remark = string.Empty;
     public System.Windows.Input.ICommand CheckoutAndPrintCommand { get; }
 
     // --- 1. ตัวแปรสำหรับ Form ข้อมูลเพิ่มเติม ---
@@ -216,13 +217,14 @@ public partial class OrderViewModel : ObservableObject
                 DisplayPatientDetails.Clear();
                 foreach (var item in tempDetails) DisplayPatientDetails.Add(item);
 
-                DepartmentList.Clear();
-                foreach (var d in depts) DepartmentList.Add(d);
-                if (DepartmentList.Any()) SelectedDepartment = DepartmentList.First();
+                // 🌟 สร้างใหม่เพื่อบังคับ Refresh UI
+                DepartmentList = new ObservableCollection<string>(depts);
+                if (DepartmentList.Any() && !DepartmentList.Contains(SelectedDepartment))
+                    SelectedDepartment = DepartmentList.First();
 
-                DoctorList.Clear();
-                foreach (var d in docs) DoctorList.Add(d);
-                if (DoctorList.Any()) SelectedDoctor = DoctorList.First();
+                DoctorList = new ObservableCollection<string>(docs);
+                if (DoctorList.Any() && !DoctorList.Contains(SelectedDoctor))
+                    SelectedDoctor = DoctorList.First();
             });
         }
         catch (Exception ex)
@@ -418,6 +420,7 @@ public partial class OrderViewModel : ObservableObject
         if (existingItem != null)
         {
             existingItem.Quantity++;
+            // หมายเหตุ: เมื่อ Quantity เปลี่ยน จะไปเข้าเงื่อนไข CartItem_PropertyChanged อัตโนมัติ (เพราะผูก Event ไว้แล้วตั้งแต่ตอน Add)
         }
         else
         {
@@ -428,14 +431,19 @@ public partial class OrderViewModel : ObservableObject
                 rawDict[_csvHeaders[i]] = i < cols.Length ? cols[i] : string.Empty;
             }
 
-            CartItems.Add(new CartItemModel
+            var newCartItem = new CartItemModel
             {
                 OrderCode = item.OrderCode,
                 OrderName = item.OrderName,
                 UnitPrice = item.Price,
                 Quantity = 1,
                 RawData = rawDict
-            });
+            };
+
+            // 🌟 2. ผูก Event เข้ากับ Item ใหม่ก่อนนำลงตะกร้า
+            newCartItem.PropertyChanged += CartItem_PropertyChanged;
+
+            CartItems.Add(newCartItem);
         }
         CalculateGrandTotal();
     }
@@ -445,6 +453,9 @@ public partial class OrderViewModel : ObservableObject
     {
         if (CartItems.Contains(item))
         {
+            // 🌟 3. ยกเลิกการผูก Event ก่อนลบทิ้ง เพื่อป้องกัน Memory Leak
+            item.PropertyChanged -= CartItem_PropertyChanged;
+
             CartItems.Remove(item);
             CalculateGrandTotal();
         }
@@ -566,6 +577,12 @@ public partial class OrderViewModel : ObservableObject
                     <td class='colon-col'>:</td>
                     <td class='value-col'>{(string.IsNullOrEmpty(Allergy) ? "-" : Allergy)}</td>
                 </tr>
+    
+                <tr>
+                    <td class='label-col'>หมายเหตุ</td>
+                    <td class='colon-col'>:</td>
+                    <td class='value-col'>{(string.IsNullOrEmpty(Remark) ? "-" : Remark)}</td>
+                </tr>
             </table>
 
             <table class='item-table'>
@@ -624,6 +641,40 @@ public partial class OrderViewModel : ObservableObject
             }
         }
     }
+    [RelayCommand]
+    private void IncreaseQuantity(CartItemModel item)
+    {
+        if (item != null)
+        {
+            item.Quantity++;
+            CalculateGrandTotal(); // เรียกเมธอดที่ใช้คำนวณ GrandTotal ของคุณเพื่ออัปเดตยอดรวม
+        }
+    }
 
-   
+    [RelayCommand]
+    private void DecreaseQuantity(CartItemModel item)
+    {
+        if (item != null)
+        {
+            if (item.Quantity > 1)
+            {
+                item.Quantity--;
+                CalculateGrandTotal();
+            }
+            else
+            {
+                // ถ้าจำนวนเป็น 1 แล้วกดลบอีก ให้ลบออกจากตะกร้า
+                RemoveFromCart(item);
+            }
+        }
+    }
+    private void CartItem_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        // ตรวจสอบว่าถ้า Quantity หรือ TotalPrice เปลี่ยน ให้คำนวณยอดรวมสุทธิใหม่
+        if (e.PropertyName == nameof(CartItemModel.Quantity) || e.PropertyName == nameof(CartItemModel.TotalPrice))
+        {
+            CalculateGrandTotal();
+        }
+    }
+
 }

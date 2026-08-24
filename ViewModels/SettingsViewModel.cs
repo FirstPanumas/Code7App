@@ -1,7 +1,8 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Code7App.Models;
+﻿using Code7App.Models;
 using Code7App.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Text.Json;
 
 namespace Code7App.ViewModels;
@@ -27,8 +28,23 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task SaveSettingsAsync()
     {
+        // 1. บันทึกค่า
         await _settingsService.SaveSettingsAsync(Config);
+
+        // 2. ส่ง Message กระจายสัญญาณว่าตั้งค่าถูกอัปเดตแล้ว
+        WeakReferenceMessenger.Default.Send(new SettingsChangedMessage());
+
         await Application.Current!.MainPage!.DisplayAlert("Success", "บันทึกการตั้งค่าเรียบร้อยแล้ว", "OK");
+
+        // 3. ย้อนกลับไปหน้าก่อนหน้า (MainPage)
+        if (Shell.Current != null)
+        {
+            await Shell.Current.GoToAsync("..");
+        }
+        else if (Application.Current.MainPage.Navigation.NavigationStack.Count > 0)
+        {
+            await Application.Current.MainPage.Navigation.PopAsync();
+        }
     }
 
     [RelayCommand]
@@ -89,4 +105,7 @@ public partial class SettingsViewModel : ObservableObject
     System.Diagnostics.Process.Start("explorer.exe", folderPath);
 #endif
     }
+
+
+    public class SettingsChangedMessage { }
 }

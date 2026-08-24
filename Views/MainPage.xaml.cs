@@ -84,8 +84,16 @@ public partial class MainPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+
+        // Unsubscribe ก่อนเสมอ
+        _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+
+        // โหลดข้อมูลเริ่มต้น (เช่น CSV)
         await _viewModel.InitializeAsync();
+
+        // ?? บังคับดึงการตั้งค่า Dropdown ใหม่ทุกครั้งที่เปิดหน้านี้ (ใช้ _viewModel ตรงๆ ได้เลย)
+        await _viewModel.ReloadSettingsAsync();
     }
 
     protected override void OnDisappearing()

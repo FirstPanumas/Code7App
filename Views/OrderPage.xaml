@@ -47,7 +47,9 @@
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="8" />
                         </Border.StrokeShape>
-                        <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="15" RowSpacing="10">
+
+                        <!-- 🌟 แก้ไข 1: เพิ่ม RowDefinitions เป็น 4 แถว (เพิ่ม Auto ต่อท้าย) -->
+                        <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto, Auto, Auto" ColumnSpacing="15" RowSpacing="10">
 
                             <!-- แถว 1: วันที่ / เวลา -->
                             <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="2">
@@ -68,10 +70,10 @@
                                     </Border.StrokeShape>
                                     <Grid ColumnDefinitions="*, Auto, *" Margin="5,0">
                                         <Picker Grid.Column="0" ItemsSource="{Binding HourList}" SelectedItem="{Binding SelectedHour}" 
-                                                BackgroundColor="Transparent" TextColor="Black" FontSize="13" HorizontalTextAlignment="Center" />
+                            BackgroundColor="Transparent" TextColor="Black" FontSize="13" HorizontalTextAlignment="Center" />
                                         <Label Grid.Column="1" Text=":" VerticalOptions="Center" FontAttributes="Bold" TextColor="Black" />
                                         <Picker Grid.Column="2" ItemsSource="{Binding MinuteList}" SelectedItem="{Binding SelectedMinute}" 
-                                                BackgroundColor="Transparent" TextColor="Black" FontSize="13" HorizontalTextAlignment="Center" />
+                            BackgroundColor="Transparent" TextColor="Black" FontSize="13" HorizontalTextAlignment="Center" />
                                     </Grid>
                                 </Border>
                             </VerticalStackLayout>
@@ -84,7 +86,7 @@
                                         <RoundRectangle CornerRadius="4" />
                                     </Border.StrokeShape>
                                     <Picker ItemsSource="{Binding DepartmentList}" SelectedItem="{Binding SelectedDepartment}" 
-                                            Margin="5,0" BackgroundColor="Transparent" TextColor="Black" FontSize="13"/>
+                        Margin="5,0" BackgroundColor="Transparent" TextColor="Black" FontSize="13"/>
                                 </Border>
                             </VerticalStackLayout>
 
@@ -94,8 +96,14 @@
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="4" />
                                     </Border.StrokeShape>
-                                    <Picker ItemsSource="{Binding DoctorList}" SelectedItem="{Binding SelectedDoctor}" 
-                                            Margin="5,0" BackgroundColor="Transparent" TextColor="Black" FontSize="13"/>
+                                    <Entry Text="{Binding SelectedDoctor, Mode=TwoWay}" 
+                                       Placeholder="ระบุชื่อแพทย์..." 
+                                       TextColor="Black" 
+                                       BackgroundColor="Transparent" 
+                                       HorizontalOptions="Fill" 
+                                       VerticalOptions="Center" 
+                                       FontSize="13"
+                                       Margin="10,0" />
                                 </Border>
                             </VerticalStackLayout>
 
@@ -117,6 +125,23 @@
                                         <RoundRectangle CornerRadius="4" />
                                     </Border.StrokeShape>
                                     <Editor Text="{Binding Allergy}" Margin="5,2" BackgroundColor="Transparent" TextColor="Black" FontSize="13"/>
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- 🌟 แก้ไข 2: เพิ่ม แถว 4 สำหรับ Remark (ขยายเต็ม 2 คอลัมน์) -->
+                            <VerticalStackLayout Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Spacing="2">
+                                <Label Text="หมายเหตุ (Remark)" TextColor="Gray" FontSize="12" />
+                                <Border Stroke="{StaticResource BorderColor}" StrokeThickness="1" BackgroundColor="White" HeightRequest="40">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="4" />
+                                    </Border.StrokeShape>
+                                    <Entry Text="{Binding Remark, Mode=TwoWay}" 
+                       Placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)..." 
+                       TextColor="Black" 
+                       BackgroundColor="Transparent" 
+                       Margin="10,0" 
+                       FontSize="13" 
+                       VerticalOptions="Center" />
                                 </Border>
                             </VerticalStackLayout>
 
@@ -171,35 +196,35 @@
                 </Grid>
 
                 <!-- 3. WORKSPACE -->
-                <Grid Grid.Row="2" ColumnDefinitions="6*, 4*" ColumnSpacing="20">
-
+                <Grid Grid.Row="2" ColumnDefinitions="6*, 4*" ColumnSpacing="15">
                     <!-- Left: Order List -->
                     <CollectionView Grid.Column="0" ItemsSource="{Binding AvailableOrders}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:OrderItemModel">
-                                <Border Stroke="{StaticResource BorderColor}" StrokeThickness="1" BackgroundColor="White" Padding="15" Margin="0,0,0,10">
+                                <!-- ปรับลด Padding และ Margin ของกรอบ Order List -->
+                                <Border Stroke="{StaticResource BorderColor}" StrokeThickness="1" BackgroundColor="White" Padding="10" Margin="0,0,0,8">
                                     <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="8" />
+                                        <RoundRectangle CornerRadius="6" />
                                     </Border.StrokeShape>
-                                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="15">
+                                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
 
                                         <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" BindableLayout.ItemsSource="{Binding DisplayFields}">
                                             <BindableLayout.ItemTemplate>
                                                 <DataTemplate x:DataType="models:PatientDetailModel">
-                                                    <Grid ColumnDefinitions="120, *" Margin="0,2">
-                                                        <Label Grid.Column="0" Text="{Binding Key, StringFormat='{0}:'}" TextColor="Gray" FontSize="13" VerticalOptions="Center"/>
-                                                        <Label Grid.Column="1" Text="{Binding Value}" TextColor="Black" FontAttributes="Bold" FontSize="14" LineBreakMode="TailTruncation" VerticalOptions="Center"/>
+                                                    <Grid ColumnDefinitions="120, *" Margin="0,1">
+                                                        <Label Grid.Column="0" Text="{Binding Key, StringFormat='{0}:'}" TextColor="Gray" FontSize="12" VerticalOptions="Center"/>
+                                                        <Label Grid.Column="1" Text="{Binding Value}" TextColor="Black" FontAttributes="Bold" FontSize="13" LineBreakMode="TailTruncation" VerticalOptions="Center"/>
                                                     </Grid>
                                                 </DataTemplate>
                                             </BindableLayout.ItemTemplate>
                                         </VerticalStackLayout>
 
-                                        <!-- ปุ่มเพิ่มลงตะกร้า ปรับให้เข้ากับธีมหลัก -->
+                                        <!-- ย่อขนาดปุ่มเพิ่ม -->
                                         <Button Grid.Column="1" Text="+ เพิ่ม" 
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:OrderViewModel}}, Path=AddToCartCommand}" 
-                                                CommandParameter="{Binding .}"
-                                                BackgroundColor="#17859F" TextColor="White" FontAttributes="Bold" 
-                                                HeightRequest="40" WidthRequest="80" CornerRadius="6" VerticalOptions="Center"/>
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:OrderViewModel}}, Path=AddToCartCommand}" 
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="#17859F" TextColor="White" FontAttributes="Bold" 
+                                        HeightRequest="35" WidthRequest="70" CornerRadius="6" VerticalOptions="Center"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -207,34 +232,56 @@
                     </CollectionView>
 
                     <!-- Right: Cart & Checkout -->
-                    <Border Grid.Column="1" BackgroundColor="White" Stroke="{StaticResource BorderColor}" StrokeThickness="1" Padding="20">
+            <!-- ปรับลด Padding ของกรอบฝั่งขวา -->
+                    <Border Grid.Column="1" BackgroundColor="White" Stroke="{StaticResource BorderColor}" StrokeThickness="1" Padding="15,10">
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="8" />
+                            <RoundRectangle CornerRadius="6" />
                         </Border.StrokeShape>
-                        <Grid RowDefinitions="Auto, *, Auto" RowSpacing="15">
+                        <Grid RowDefinitions="Auto, *, Auto" RowSpacing="10">
 
-                            <Label Grid.Row="0" Text="🛒 รายการยา" FontAttributes="Bold" FontSize="18" TextColor="#333333"/>
+                            <Label Grid.Row="0" Text="🛒 รายการยา" FontAttributes="Bold" FontSize="16" TextColor="#333333"/>
 
                             <CollectionView Grid.Row="1" ItemsSource="{Binding CartItems}">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate x:DataType="models:CartItemModel">
-                                        <Grid ColumnDefinitions="*, Auto, Auto" Margin="0,0,0,12" ColumnSpacing="10">
+                                        <Grid ColumnDefinitions="*, Auto, Auto" Margin="0,0,0,8" ColumnSpacing="10">
                                             <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
-                                                <Label Text="{Binding OrderName}" FontAttributes="Bold" FontSize="14" TextColor="Black" LineBreakMode="TailTruncation" MaxLines="1"/>
-                                                <Label Text="{Binding TotalPrice, StringFormat='฿{0:N2}'}" FontSize="13" TextColor="#2E7D32" Margin="0,2,0,0"/>
+                                                <Label Text="{Binding OrderName}" FontAttributes="Bold" FontSize="13" TextColor="Black" LineBreakMode="TailTruncation" MaxLines="1"/>
+                                                <Label Text="{Binding TotalPrice, StringFormat='฿{0:N2}'}" FontSize="12" TextColor="#2E7D32" Margin="0,1,0,0"/>
                                             </VerticalStackLayout>
 
-                                            <Border Grid.Column="1" Stroke="{StaticResource BorderColor}" StrokeThickness="1" Padding="10,5" VerticalOptions="Center" BackgroundColor="#F9F9F9">
+                                            <!-- ปรับกรอบจำนวน x ให้เล็กลง -->
+                                            <!-- เปลี่ยนกรอบจำนวนเป็นปุ่ม - / พิมพ์ตัวเลข / + -->
+                                            <Border Grid.Column="1" Stroke="{StaticResource BorderColor}" StrokeThickness="1" Padding="0" VerticalOptions="Center" BackgroundColor="White">
                                                 <Border.StrokeShape>
                                                     <RoundRectangle CornerRadius="4"/>
                                                 </Border.StrokeShape>
-                                                <Label Text="{Binding Quantity, StringFormat='x{0}'}" FontAttributes="Bold" FontSize="14" TextColor="Black"/>
+                                                <Grid ColumnDefinitions="30, 40, 30" ColumnSpacing="0">
+
+                                                    <!-- ปุ่มลดจำนวน (-) -->
+                                                    <Button Grid.Column="0" Text="-" Padding="0" CornerRadius="0"
+                                                    BackgroundColor="#F5F5F5" TextColor="Black" FontAttributes="Bold" FontSize="16"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:OrderViewModel}}, Path=DecreaseQuantityCommand}"
+                                                    CommandParameter="{Binding .}"/>
+
+                                                    <!-- ช่องพิมพ์ระบุจำนวน -->
+                                                    <Entry Grid.Column="1" Text="{Binding Quantity, Mode=TwoWay}" 
+                                                   Keyboard="Numeric" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"
+                                                   BackgroundColor="White" TextColor="Black" FontSize="13" Margin="0" />
+
+                                                    <!-- ปุ่มเพิ่มจำนวน (+) -->
+                                                    <Button Grid.Column="2" Text="+" Padding="0" CornerRadius="0"
+                                                    BackgroundColor="#F5F5F5" TextColor="Black" FontAttributes="Bold" FontSize="16"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:OrderViewModel}}, Path=IncreaseQuantityCommand}"
+                                                    CommandParameter="{Binding .}"/>
+                                                </Grid>
                                             </Border>
 
-                                            <Button Grid.Column="2" Text="X" WidthRequest="40" HeightRequest="40" CornerRadius="20"
-                                                    TextColor="White" BackgroundColor="#D32F2F" FontAttributes="Bold"
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:OrderViewModel}}, Path=RemoveFromCartCommand}"
-                                                    CommandParameter="{Binding .}"/>
+                                            <!-- ย่อขนาดปุ่มลบ (X) -->
+                                            <Button Grid.Column="2" Text="✕" WidthRequest="30" HeightRequest="30" CornerRadius="15" Padding="0"
+                                            TextColor="White" BackgroundColor="#D32F2F" FontAttributes="Bold" FontSize="12"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:OrderViewModel}}, Path=RemoveFromCartCommand}"
+                                            CommandParameter="{Binding .}"/>
                                         </Grid>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
@@ -243,30 +290,31 @@
                                 </CollectionView.EmptyView>
                             </CollectionView>
 
-                            <VerticalStackLayout Grid.Row="2" Spacing="15">
+                            <VerticalStackLayout Grid.Row="2" Spacing="10">
                                 <BoxView HeightRequest="1" Color="{StaticResource BorderColor}" />
                                 <Grid ColumnDefinitions="*, Auto">
-                                    <Label Grid.Column="0" Text="รวมสุทธิ:" FontAttributes="Bold" FontSize="18" TextColor="Black" VerticalOptions="Center"/>
-                                    <Label Grid.Column="1" Text="{Binding GrandTotal, StringFormat='฿{0:N2}'}" FontAttributes="Bold" FontSize="22" TextColor="#D32F2F" VerticalOptions="Center"/>
+                                    <Label Grid.Column="0" Text="รวมสุทธิ:" FontAttributes="Bold" FontSize="16" TextColor="Black" VerticalOptions="Center"/>
+                                    <Label Grid.Column="1" Text="{Binding GrandTotal, StringFormat='฿{0:N2}'}" FontAttributes="Bold" FontSize="20" TextColor="#D32F2F" VerticalOptions="Center"/>
                                 </Grid>
+                                <!-- ย่อขนาดปุ่มยืนยัน Order ลงเล็กน้อย -->
                                 <Button Text="🖨️ สั่งพิมพ์ / ยืนยัน Order" 
-                                        Command="{Binding CheckoutAndPrintCommand}" 
-                                        BackgroundColor="#17859F" TextColor="White" FontAttributes="Bold" HeightRequest="50" CornerRadius="8"/>
+                                Command="{Binding CheckoutAndPrintCommand}" 
+                                BackgroundColor="#17859F" TextColor="White" FontAttributes="Bold" HeightRequest="45" CornerRadius="6"/>
                             </VerticalStackLayout>
                         </Grid>
                     </Border>
                 </Grid>
             </Grid>
 
-            <!-- 🌟 4. FOOTER: ปุ่มกลับ (พื้นหลังสีเดียวกับ Footer ของ MainPage) -->
-            <Grid Grid.Row="3" BackgroundColor="#F5F5F5" Padding="20">
+            <!-- 🌟 4. FOOTER: ลด Padding และ HeightRequest เพื่อให้ Footer กินพื้นที่น้อยลง -->
+            <Grid Grid.Row="3" BackgroundColor="#F5F5F5" Padding="15,10">
                 <Button Text="&lt; กลับหน้าหลัก" 
-                        Command="{Binding GoBackCommand}" 
-                        BackgroundColor="#E0E0E0" 
-                        TextColor="Black" 
-                        FontAttributes="Bold"
-                        HeightRequest="40"
-                        HorizontalOptions="Start" />
+                Command="{Binding GoBackCommand}" 
+                BackgroundColor="#E0E0E0" 
+                TextColor="Black" 
+                FontAttributes="Bold"
+                HeightRequest="35"
+                HorizontalOptions="Start" />
             </Grid>
 
         </Grid>

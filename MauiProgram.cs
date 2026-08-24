@@ -19,7 +19,10 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
-       
+
+
+
+        
         // Register Services
         builder.Services.AddSingleton<ISettingsService, SettingsService>();
         builder.Services.AddSingleton<ICsvReaderService, CsvReaderService>();
@@ -39,6 +42,7 @@ public static class MauiProgram
 
         // ลงทะเบียน Route สำหรับหน้า OrderPage
         Routing.RegisterRoute(nameof(OrderPage), typeof(Code7App.Views.OrderPage));
+       
 
 
 #if DEBUG
