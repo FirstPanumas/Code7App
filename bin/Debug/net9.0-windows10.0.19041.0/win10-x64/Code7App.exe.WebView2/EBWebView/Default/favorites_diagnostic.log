@@ -70,3 +70,12 @@
 2026-08-21 06:19:24.952: [INFO] BookmarksLoadDropped droppedNodes=0
 2026-08-21 06:19:24.952: [INFO] BookmarksSnapshot Startup total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
 2026-08-21 06:20:25.171: [INFO] BookmarksSnapshot Shutdown total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-08-24 01:09:36.286: [INFO] CurrentProfilePath: C:\Users\Lenovo\source\repos\FirstPanumas\Code7App\bin\Debug\net9.0-windows10.0.19041.0\win10-x64\Code7App.exe.WebView2\EBWebView\Default
+2026-08-24 01:09:36.286: [INFO] Profiles total count: 1
+2026-08-24 01:09:36.286: [INFO] Profile: name=Profile 1 path=C:\Users\Lenovo\source\repos\FirstPanumas\Code7App\bin\Debug\net9.0-windows10.0.19041.0\win10-x64\Code7App.exe.WebView2\EBWebView\Default lastActive=null
+2026-08-24 01:09:36.286: [INFO] LastUsedProfileDir: C:\Users\Lenovo\source\repos\FirstPanumas\Code7App\bin\Debug\net9.0-windows10.0.19041.0\win10-x64\Code7App.exe.WebView2\EBWebView\Default
+2026-08-24 01:09:36.286: [INFO] OnDoneLoading sync enabled: 0
+2026-08-24 01:09:36.286: [INFO] BookmarkModelLoaded, ids_reassigned: 0
+2026-08-24 01:09:36.286: [INFO] BookmarksLoadDropped droppedNodes=0
+2026-08-24 01:09:36.286: [INFO] BookmarksSnapshot Startup total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-08-24 01:13:24.708: [INFO] BookmarksSnapshot Shutdown total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1

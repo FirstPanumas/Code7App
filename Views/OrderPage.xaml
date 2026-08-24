@@ -213,7 +213,7 @@
                         </Border.StrokeShape>
                         <Grid RowDefinitions="Auto, *, Auto" RowSpacing="15">
 
-                            <Label Grid.Row="0" Text="🛒 ตะกร้าสินค้า" FontAttributes="Bold" FontSize="18" TextColor="#333333"/>
+                            <Label Grid.Row="0" Text="🛒 รายการยา" FontAttributes="Bold" FontSize="18" TextColor="#333333"/>
 
                             <CollectionView Grid.Row="1" ItemsSource="{Binding CartItems}">
                                 <CollectionView.ItemTemplate>
@@ -239,7 +239,7 @@
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                                 <CollectionView.EmptyView>
-                                    <Label Text="ยังไม่มีรายการในตะกร้า" TextColor="Gray" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                    <Label Text="ยังไม่มีรายการยาที่เลือกใช้" TextColor="Gray" HorizontalOptions="Center" VerticalOptions="Center"/>
                                 </CollectionView.EmptyView>
                             </CollectionView>
 

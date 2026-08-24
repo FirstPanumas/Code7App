@@ -13,25 +13,14 @@ namespace Code7App.ViewModels;
 public partial class MainViewModel : ObservableObject
 {
     private readonly ISettingsService _settingsService;
-
     private List<Dictionary<string, string>> _allCsvRows = new();
     private const int PageSize = 100;
-
-    // --- 1. Configuration & App State ---
-    [ObservableProperty]
-    private AppConfig _currentConfig = new();
-
-    [ObservableProperty]
-    private bool _isLoading;
-
     private bool _isInitialized = false;
 
-    // --- 2. Data Grid & Pagination ---
-    [ObservableProperty]
-    private ObservableCollection<Dictionary<string, string>> _csvRows = [];
-
-    [ObservableProperty]
-    private ObservableCollection<string> _csvColumns = [];
+    [ObservableProperty] private AppConfig _currentConfig = new();
+    [ObservableProperty] private bool _isLoading;
+    [ObservableProperty] private ObservableCollection<Dictionary<string, string>> _csvRows = [];
+    [ObservableProperty] private ObservableCollection<string> _csvColumns = [];
 
     private Dictionary<string, string>? _selectedPatient;
     public Dictionary<string, string>? SelectedPatient
@@ -48,8 +37,6 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private int _currentPage = 1;
     [ObservableProperty] private int _totalPages = 1;
-
-    // --- 3. Filter & Search ---
     [ObservableProperty] private string _filterLabel = "ตัวกรอง";
     [ObservableProperty] private ObservableCollection<string> _filterOptions = [];
     [ObservableProperty] private string _searchResultMessage = string.Empty;
@@ -58,53 +45,45 @@ public partial class MainViewModel : ObservableObject
     public string SearchText
     {
         get => _searchText;
-        set
-        {
-            if (SetProperty(ref _searchText, value))
-            {
-                CurrentPage = 1;
-                ApplyFilters();
-            }
-        }
+        set { if (SetProperty(ref _searchText, value)) { CurrentPage = 1; ApplyFilters(); } }
     }
 
     private string _selectedFilterValue = string.Empty;
     public string SelectedFilterValue
     {
         get => _selectedFilterValue;
-        set
-        {
-            if (SetProperty(ref _selectedFilterValue, value))
-            {
-                CurrentPage = 1;
-                ApplyFilters();
-            }
-        }
+        set { if (SetProperty(ref _selectedFilterValue, value)) { CurrentPage = 1; ApplyFilters(); } }
     }
 
-    // --- 4. Patient Details Display ---
-    [ObservableProperty]
-    private ObservableCollection<PatientDetailModel> _displayPatientDetails = [];
+    // 🌟 1. เพิ่มตัวแปรสำหรับ Filter วันเกิด
+    private bool _useDobFilter;
+    public bool UseDobFilter
+    {
+        get => _useDobFilter;
+        set { if (SetProperty(ref _useDobFilter, value)) { CurrentPage = 1; ApplyFilters(); } }
+    }
 
-    // --- 5. Register Modal State ---
+    private DateTime _filterDob = DateTime.Today;
+    public DateTime FilterDob
+    {
+        get => _filterDob;
+        set { if (SetProperty(ref _filterDob, value)) { if (UseDobFilter) { CurrentPage = 1; ApplyFilters(); } } }
+    }
+
+    [ObservableProperty] private ObservableCollection<PatientDetailModel> _displayPatientDetails = [];
     [ObservableProperty] private bool _isRegisterModalVisible;
     [ObservableProperty] private DateTime _appointmentDate = DateTime.Today;
-
     [ObservableProperty] private ObservableCollection<string> _hourItems = new(Enumerable.Range(0, 24).Select(i => i.ToString("D2")));
     [ObservableProperty] private string _selectedHour = DateTime.Now.ToString("HH");
-
     [ObservableProperty] private ObservableCollection<string> _minuteItems = new(Enumerable.Range(0, 60).Select(i => i.ToString("D2")));
     [ObservableProperty] private string _selectedMinute = DateTime.Now.ToString("mm");
-
     [ObservableProperty] private ObservableCollection<string> _departmentItems = [];
     [ObservableProperty] private string _department = string.Empty;
-
     [ObservableProperty] private ObservableCollection<string> _doctorItems = [];
     [ObservableProperty] private string _doctor = string.Empty;
-
     [ObservableProperty] private string _dx = string.Empty;
     [ObservableProperty] private string _allergy = string.Empty;
-    [ObservableProperty] private string _payor = string.Empty;
+    [ObservableProperty] private string _payer = string.Empty;
 
     public MainViewModel(ISettingsService settingsService)
     {
@@ -114,19 +93,17 @@ public partial class MainViewModel : ObservableObject
     public async Task InitializeAsync()
     {
         if (_isInitialized) return;
-
         IsLoading = true;
         try
         {
             CurrentConfig = await _settingsService.LoadSettingsAsync() ?? new AppConfig();
             LoadDropdownConfigs();
 
-            string defaultPath = CurrentConfig.PatientRegister.DefaultPath;
-            if (!string.IsNullOrWhiteSpace(defaultPath) && File.Exists(defaultPath))
+            string defaultPath = CurrentConfig.PatientRegister?.DefaultPath ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(defaultPath))
             {
                 await LoadCsvDataAsync(defaultPath);
             }
-
             _isInitialized = true;
         }
         finally
@@ -137,20 +114,11 @@ public partial class MainViewModel : ObservableObject
 
     private void LoadDropdownConfigs()
     {
-        // โหลดข้อมูลแผนกและแพทย์
-        var deptConfig = CurrentConfig.PatientRegister.DepartmentList ?? "OPD, IPD";
-        var docConfig = CurrentConfig.PatientRegister.DoctorList ?? "-";
+        var deptConfig = CurrentConfig.PatientRegister?.DepartmentList ?? "OPD, IPD";
+        var docConfig = CurrentConfig.PatientRegister?.DoctorList ?? "-";
 
         var depts = deptConfig.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        var docs = docConfig.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                          .Where(d => d != "-").ToArray();
-
-        // 🌟 เพิ่มการโหลดข้อมูล Filter ของหน้า MainPage
-        string filterColConfig = CurrentConfig.PatientRegister.DropdownColumn?.Trim() ?? string.Empty;
-        string dropdownListSetting = CurrentConfig.PatientRegister.DropdownList ?? string.Empty;
-
-        var filterOpts = dropdownListSetting.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
-        filterOpts.Insert(0, "ทั้งหมด");
+        var docs = docConfig.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Where(d => d != "-").ToArray();
 
         MainThread.BeginInvokeOnMainThread(() =>
         {
@@ -159,16 +127,6 @@ public partial class MainViewModel : ObservableObject
 
             DoctorItems = new ObservableCollection<string>(docs);
             if (DoctorItems.Any()) Doctor = DoctorItems.First();
-
-            // 🌟 ตั้งค่า Filter UI
-            FilterLabel = !string.IsNullOrWhiteSpace(filterColConfig) ? filterColConfig : "ตัวกรอง";
-            FilterOptions = new ObservableCollection<string>(filterOpts);
-            if (FilterOptions.Any())
-            {
-                // เลี่ยงการใช้ Setter ที่จะ Trigger ค้นหาซ้ำซ้อนตอนเริ่มต้น
-                _selectedFilterValue = FilterOptions[0];
-                OnPropertyChanged(nameof(SelectedFilterValue));
-            }
         });
     }
 
@@ -177,75 +135,94 @@ public partial class MainViewModel : ObservableObject
         try
         {
             IsLoading = true;
-            await Task.Run(() =>
+
+            // 1. อ่านและประมวลผลไฟล์ใน Background Thread อย่างสมบูรณ์
+            var (headers, tempRows) = await Task.Run(() =>
             {
-                var lines = File.ReadAllLines(filePath);
-                if (lines.Length == 0) return;
+                var linesList = new List<string>();
 
-                var headers = FastCsvSplit(lines[0]);
-                var tempRows = new List<Dictionary<string, string>>(lines.Length);
-
-                for (int i = 1; i < lines.Length; i++)
+                // ใช้ FileStream เพื่อป้องกันการโดน Lock จากโปรแกรมอื่น
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8, true))
                 {
-                    if (string.IsNullOrWhiteSpace(lines[i])) continue;
-                    var values = FastCsvSplit(lines[i]);
-                    var row = new Dictionary<string, string>();
-
-                    for (int j = 0; j < headers.Length; j++)
+                    string? line;
+                    while ((line = reader.ReadLine()) != null)
                     {
-                        row[headers[j]] = j < values.Length ? values[j] : string.Empty;
+                        linesList.Add(line);
                     }
-                    tempRows.Add(row);
                 }
 
-                _allCsvRows = tempRows;
-                string filterCol = CurrentConfig.PatientRegister?.DropdownColumn ?? string.Empty;
-                string dropdownSetting = CurrentConfig.PatientRegister?.DropdownList ?? string.Empty;
+                if (linesList.Count == 0) return (Array.Empty<string>(), new List<Dictionary<string, string>>());
 
-                MainThread.BeginInvokeOnMainThread(() =>
+                var h = FastCsvSplit(linesList[0]);
+                var rows = new List<Dictionary<string, string>>(linesList.Count);
+
+                for (int i = 1; i < linesList.Count; i++)
                 {
-                    CsvColumns = new ObservableCollection<string>(headers);
+                    if (string.IsNullOrWhiteSpace(linesList[i])) continue;
+                    var values = FastCsvSplit(linesList[i]);
 
-                    var options = new List<string>();
-                    if (!string.IsNullOrWhiteSpace(dropdownSetting))
+                    var row = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+                    for (int j = 0; j < h.Length; j++)
                     {
-                        options = dropdownSetting.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                        row[h[j]] = j < values.Length ? values[j] : string.Empty;
                     }
-                    else if (!string.IsNullOrWhiteSpace(filterCol) && headers.Contains(filterCol, StringComparer.OrdinalIgnoreCase))
-                    {
-                        // 🌟 ดึงข้อมูลหมวดหมู่ที่ไม่ซ้ำกันจากข้อมูลดิบ
-                        options = _allCsvRows.Select(row => row.GetValueOrDefault(filterCol, string.Empty))
-                                             .Where(val => !string.IsNullOrWhiteSpace(val))
-                                             .Distinct()
-                                             .OrderBy(val => val)
-                                             .ToList();
-                    }
+                    rows.Add(row);
+                }
 
-                    options.Insert(0, "ทั้งหมด");
-                    FilterOptions = new ObservableCollection<string>(options);
-                    FilterLabel = !string.IsNullOrWhiteSpace(filterCol) ? filterCol : "ตัวกรอง";
-
-                    // เซ็ตค่าเริ่มต้น
-                    _selectedFilterValue = options.First();
-                    OnPropertyChanged(nameof(SelectedFilterValue));
-
-                    CurrentPage = 1;
-                    _searchText = string.Empty;
-                    OnPropertyChanged(nameof(SearchText));
-
-                    ApplyFilters();
-                });
+                return (h, rows);
             });
+
+            if (headers.Length == 0) return;
+
+            // 2. อัปเดต UI (โค้ดจะทำงานบน Main Thread อัตโนมัติหลัง await)
+            _allCsvRows = tempRows;
+
+            string filterCol = CurrentConfig.PatientRegister?.DropdownColumn ?? string.Empty;
+            string dropdownSetting = CurrentConfig.PatientRegister?.DropdownList ?? string.Empty;
+
+            CsvColumns = new ObservableCollection<string>(headers);
+
+            var options = new List<string>();
+            if (!string.IsNullOrWhiteSpace(dropdownSetting))
+            {
+                options = dropdownSetting.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+            }
+            else if (!string.IsNullOrWhiteSpace(filterCol) && headers.Contains(filterCol, StringComparer.OrdinalIgnoreCase))
+            {
+                options = _allCsvRows.Select(row => row.GetValueOrDefault(filterCol, string.Empty))
+                                     .Where(val => !string.IsNullOrWhiteSpace(val))
+                                     .Distinct()
+                                     .OrderBy(val => val)
+                                     .ToList();
+            }
+
+            options.Insert(0, "ทั้งหมด");
+            FilterOptions = new ObservableCollection<string>(options);
+            FilterLabel = !string.IsNullOrWhiteSpace(filterCol) ? filterCol : "ตัวกรอง";
+
+            _selectedFilterValue = options.First();
+            OnPropertyChanged(nameof(SelectedFilterValue));
+
+            CurrentPage = 1;
+            _searchText = string.Empty;
+            OnPropertyChanged(nameof(SearchText));
+            UseDobFilter = false;
+
+            ApplyFilters();
         }
         catch (Exception ex)
         {
-            MainThread.BeginInvokeOnMainThread(() =>
+            if (Application.Current?.MainPage != null)
             {
-                Application.Current?.MainPage?.DisplayAlert("Error", $"ไม่สามารถโหลดไฟล์ CSV ได้: {ex.Message}", "OK");
-            });
+                // แจ้งเตือน Alert เมื่อเกิด Error (เช่น Network เข้าไม่ได้)
+                await Application.Current.MainPage.DisplayAlert("Error", $"ไม่สามารถโหลดไฟล์ CSV ได้:\n{ex.Message}", "OK");
+            }
         }
         finally
         {
+            // บังคับปิด Loading ไม่ว่าจะโหลดสำเร็จหรือเกิด Error
             IsLoading = false;
         }
     }
@@ -276,20 +253,48 @@ public partial class MainViewModel : ObservableObject
         IEnumerable<Dictionary<string, string>> query = _allCsvRows;
 
         string filterCol = CurrentConfig.PatientRegister?.DropdownColumn ?? string.Empty;
+        string dobCol = CurrentConfig.PatientRegister?.DobColumn ?? string.Empty;
 
-        // 🌟 กรองข้อมูลจาก Dropdown
+        // 1. กรองด้วย Dropdown
         if (!string.IsNullOrEmpty(SelectedFilterValue) && SelectedFilterValue != "ทั้งหมด" && !string.IsNullOrEmpty(filterCol))
         {
             query = query.Where(row => row.TryGetValue(filterCol, out string? val) && val != null && val.Equals(SelectedFilterValue, StringComparison.OrdinalIgnoreCase));
         }
 
-        // 🌟 กรองข้อมูลจากช่องค้นหา
+        // 🌟 2. กรองด้วย วันเกิด (บังคับ Format M/d/yyyy และ ค.ศ.)
+        if (UseDobFilter && !string.IsNullOrEmpty(dobCol))
+        {
+            // สร้าง CultureInfo แบบ en-US เพื่อบังคับอ่านเป็น ค.ศ.
+            var enUSCulture = new System.Globalization.CultureInfo("en-US");
+
+            // รองรับความคลาดเคลื่อนของการพิมพ์ M/D/Y (เช่น 1/1/2026 หรือ 01/01/2026)
+            string[] expectedFormats = { "M/d/yyyy", "MM/dd/yyyy", "M/dd/yyyy", "MM/d/yyyy" };
+
+            query = query.Where(row =>
+            {
+                if (row.TryGetValue(dobCol, out string? val) && !string.IsNullOrWhiteSpace(val))
+                {
+                    if (DateTime.TryParseExact(val.Trim(), expectedFormats, enUSCulture, System.Globalization.DateTimeStyles.None, out DateTime csvDate))
+                    {
+                        return csvDate.Date == FilterDob.Date;
+                    }
+
+                    // Fallback กรณี String ไม่ตรงมาตรฐานเลย
+                    return val.Contains(FilterDob.ToString("M/d/yyyy", enUSCulture)) ||
+                           val.Contains(FilterDob.ToString("MM/dd/yyyy", enUSCulture));
+                }
+                return false;
+            });
+        }
+
+        // 3. กรองด้วย Text Search
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
             var keyword = SearchText.Trim().ToLower();
             query = query.Where(row => row.Values.Any(val => val != null && val.ToLower().Contains(keyword)));
         }
 
+        // ... โค้ดส่วน Pagination ด้านล่างคงเดิม ...
         var filteredList = query.ToList();
 
         TotalPages = (int)Math.Ceiling(filteredList.Count / (double)PageSize);
@@ -299,10 +304,7 @@ public partial class MainViewModel : ObservableObject
         var pagedData = filteredList.Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
 
         CsvRows.Clear();
-        foreach (var item in pagedData)
-        {
-            CsvRows.Add(item);
-        }
+        foreach (var item in pagedData) CsvRows.Add(item);
 
         SearchResultMessage = $"พบข้อมูลทั้งหมด {filteredList.Count} รายการ";
     }
@@ -312,7 +314,7 @@ public partial class MainViewModel : ObservableObject
         DisplayPatientDetails.Clear();
         if (SelectedPatient == null) return;
 
-        var formColumns = CurrentConfig.PatientRegister.FormDisplayColumns;
+        var formColumns = CurrentConfig.PatientRegister?.FormDisplayColumns ?? string.Empty;
         if (string.IsNullOrWhiteSpace(formColumns))
         {
             DisplayPatientDetails.Add(new PatientDetailModel { Key = "HN", Value = SelectedPatient.GetValueOrDefault("HN", "-") });
@@ -339,22 +341,12 @@ public partial class MainViewModel : ObservableObject
         {
             var customFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
             {
-                { DevicePlatform.WinUI, new[] { ".csv" } },
-                { DevicePlatform.Android, new[] { "text/csv" } },
-                { DevicePlatform.iOS, new[] { "public.comma-separated-values-text" } },
-                { DevicePlatform.MacCatalyst, new[] { "public.comma-separated-values-text" } }
+                { DevicePlatform.WinUI, new[] { ".csv" } }, { DevicePlatform.Android, new[] { "text/csv" } },
+                { DevicePlatform.iOS, new[] { "public.comma-separated-values-text" } }, { DevicePlatform.MacCatalyst, new[] { "public.comma-separated-values-text" } }
             });
 
-            var result = await FilePicker.Default.PickAsync(new PickOptions
-            {
-                PickerTitle = "เลือกไฟล์ CSV ข้อมูลผู้ป่วย",
-                FileTypes = customFileType
-            });
-
-            if (result != null)
-            {
-                await LoadCsvDataAsync(result.FullPath);
-            }
+            var result = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "เลือกไฟล์ CSV ข้อมูลผู้ป่วย", FileTypes = customFileType });
+            if (result != null) await LoadCsvDataAsync(result.FullPath);
         }
         catch (Exception ex)
         {
@@ -365,32 +357,15 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task Refresh()
     {
-        string defaultPath = CurrentConfig.PatientRegister.DefaultPath;
+        string defaultPath = CurrentConfig.PatientRegister?.DefaultPath ?? string.Empty;
         if (!string.IsNullOrWhiteSpace(defaultPath) && File.Exists(defaultPath))
         {
             await LoadCsvDataAsync(defaultPath);
         }
     }
 
-    [RelayCommand]
-    private void PreviousPage()
-    {
-        if (CurrentPage > 1)
-        {
-            CurrentPage--;
-            ApplyFilters();
-        }
-    }
-
-    [RelayCommand]
-    private void NextPage()
-    {
-        if (CurrentPage < TotalPages)
-        {
-            CurrentPage++;
-            ApplyFilters();
-        }
-    }
+    [RelayCommand] private void PreviousPage() { if (CurrentPage > 1) { CurrentPage--; ApplyFilters(); } }
+    [RelayCommand] private void NextPage() { if (CurrentPage < TotalPages) { CurrentPage++; ApplyFilters(); } }
 
     [RelayCommand]
     private async Task OpenOrderPage()
@@ -403,13 +378,7 @@ public partial class MainViewModel : ObservableObject
         }
 
         string orderCsvPath = CurrentConfig?.OrderItem?.DefaultPath ?? string.Empty;
-
-        var navParams = new Dictionary<string, object>
-        {
-            { "PatientData", SelectedPatient },
-            { "CsvPath", orderCsvPath }
-        };
-
+        var navParams = new Dictionary<string, object> { { "PatientData", SelectedPatient }, { "CsvPath", orderCsvPath } };
         await Shell.Current.GoToAsync(nameof(OrderPage), navParams);
     }
 
@@ -424,7 +393,7 @@ public partial class MainViewModel : ObservableObject
 
         Dx = string.Empty;
         Allergy = string.Empty;
-        Payor = string.Empty;
+        Payer = string.Empty;
         AppointmentDate = DateTime.Today;
         SelectedHour = DateTime.Now.ToString("HH");
         SelectedMinute = DateTime.Now.ToString("mm");
@@ -439,22 +408,21 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-  
     private void PrintRegistration()
     {
         var patientInfoBuilder = new System.Text.StringBuilder();
         foreach (var detail in DisplayPatientDetails)
         {
-            if (!string.IsNullOrWhiteSpace(detail.Value))
-            {
-                patientInfoBuilder.AppendLine($@"
-                <tr>
-                    <td class='label-col'>{detail.Key}</td>
-                    <td class='colon-col'>:</td>
-                    <td class='value-col'>{detail.Value}</td>
-                </tr>");
-            }
+            string displayValue = string.IsNullOrWhiteSpace(detail.Value) ? "-" : detail.Value;
+            patientInfoBuilder.AppendLine($@"
+            <tr>
+                <td class='label-col'>{detail.Key}</td>
+                <td class='colon-col'>:</td>
+                <td class='value-col'>{displayValue}</td>
+            </tr>");
         }
+
+        string patientHtmlRows = patientInfoBuilder.ToString();
 
         string printContent = $@"
         <!DOCTYPE html>
@@ -462,20 +430,12 @@ public partial class MainViewModel : ObservableObject
         <head>
             <meta charset='utf-8'>
             <style>
-                /* 🌟 ปรับ CSS สำหรับ A5 แนวนอน */
                 @page {{ size: A5 landscape; margin: 1.0cm; }}
-                body {{
-                    font-family: 'Cordia New', 'Leelawadee UI', 'Segoe UI', sans-serif;
-                    font-size: 14px; 
-                    color: black;
-                    padding: 0;
-                    margin: 0;
-                    line-height: 1.15; 
-                }}
+                body {{ font-family: 'Cordia New', 'Leelawadee UI', sans-serif; font-size: 14px; color: black; padding: 0; margin: 0; line-height: 1.15; }}
                 h2 {{ text-align: center; font-size: 18px; margin-bottom: 5px; }}
                 hr {{ border: 0; border-top: 1px solid #ccc; margin: 8px 0; }}
                 table {{ width: 100%; border-collapse: collapse; }}
-                td {{ padding: 4px 0; vertical-align: top; }}
+                td {{ padding: 3px 0; vertical-align: top; }}
                 .label-col {{ width: 120px; white-space: nowrap; font-weight: bold; }}
                 .colon-col {{ width: 15px; text-align: center; }}
                 .value-col {{ width: auto; }}
@@ -491,14 +451,11 @@ public partial class MainViewModel : ObservableObject
                     <td class='colon-col'>:</td>
                     <td class='value-col'>{AppointmentDate:dd/MM/yyyy} &nbsp;&nbsp;&nbsp;&nbsp; เวลา / Time : {SelectedHour}:{SelectedMinute} น.</td>
                 </tr>
-                {patientInfoBuilder}
-
-
-                 <tr >
+                {patientHtmlRows}
                 <tr>
                     <td class='label-col'>Payer</td>
                     <td class='colon-col'>:</td>
-                    <td class='value-col'>{(string.IsNullOrEmpty(Payor) ? "-" : Payor)}</td>
+                    <td class='value-col'>{(string.IsNullOrEmpty(Payer) ? "-" : Payer)}</td>
                 </tr>
                 <tr>
                     <td class='label-col'>อาการเบื้องต้น</td>

@@ -6,6 +6,7 @@ public class AppConfig
     public CsvSetting OrderItem { get; set; } = new();
     public CsvSetting OrderSet { get; set; } = new();
     public OrderConfig OrderSettings { get; set; } = new OrderConfig();
+    
 }
 
 public class CsvSetting
@@ -18,6 +19,7 @@ public class CsvSetting
     public string FormDisplayColumns { get; set; } = string.Empty;
     public string DepartmentList { get; set; } = "OPD (ผู้ป่วยนอก), IPD (ผู้ป่วยใน), ER (ฉุกเฉิน), OR (ห้องผ่าตัด)"; 
     public string DoctorList { get; set; } = "ระบุแพทย์ทีหลัง";
+    public string DobColumn { get; set; } = string.Empty;
 
 
 }
