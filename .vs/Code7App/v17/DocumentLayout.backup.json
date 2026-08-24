@@ -3,6 +3,15 @@
   "WorkspaceRootPath": "C:\\Users\\Lenovo\\source\\repos\\FirstPanumas\\Code7App\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Lenovo\\.nuget\\packages\\microsoft.maui.resizetizer\\9.0.111\\buildTransitive\\Microsoft.Maui.Resizetizer.After.targets||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Lenovo\\AppData\\Local\\User Name\\com.companyname.code7app\\Data\\RegisteredPatients.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Lenovo\\AppData\\Local\\User Name\\com.companyname.code7app\\Data\\TotalSettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{98FC997E-4B77-47AB-B86C-A267031AC686}|Code7App.csproj|c:\\users\\lenovo\\source\\repos\\firstpanumas\\code7app\\views\\mainpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{98FC997E-4B77-47AB-B86C-A267031AC686}|Code7App.csproj|solutionrelative:views\\mainpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
@@ -45,11 +54,61 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 7,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 0,
+              "Title": "Microsoft.Maui.Resizetizer.After.targets",
+              "DocumentMoniker": "C:\\Users\\Lenovo\\.nuget\\packages\\microsoft.maui.resizetizer\\9.0.111\\buildTransitive\\Microsoft.Maui.Resizetizer.After.targets",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\.nuget\\packages\\microsoft.maui.resizetizer\\9.0.111\\buildTransitive\\Microsoft.Maui.Resizetizer.After.targets",
+              "ToolTip": "C:\\Users\\Lenovo\\.nuget\\packages\\microsoft.maui.resizetizer\\9.0.111\\buildTransitive\\Microsoft.Maui.Resizetizer.After.targets",
+              "RelativeToolTip": "..\\..\\..\\..\\.nuget\\packages\\microsoft.maui.resizetizer\\9.0.111\\buildTransitive\\Microsoft.Maui.Resizetizer.After.targets",
+              "ViewState": "AgIAAHcDAAAAAAAAAAAAAIgDAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003801|",
+              "WhenOpened": "2026-08-24T04:39:45.556Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "RegisteredPatients.json",
+              "DocumentMoniker": "C:\\Users\\Lenovo\\AppData\\Local\\User Name\\com.companyname.code7app\\Data\\RegisteredPatients.json",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\AppData\\Local\\User Name\\com.companyname.code7app\\Data\\RegisteredPatients.json",
+              "ToolTip": "C:\\Users\\Lenovo\\AppData\\Local\\User Name\\com.companyname.code7app\\Data\\RegisteredPatients.json",
+              "RelativeToolTip": "..\\..\\..\\..\\AppData\\Local\\User Name\\com.companyname.code7app\\Data\\RegisteredPatients.json",
+              "ViewState": "AgIAAIwBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-08-24T02:42:48.212Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "TotalSettings.json",
+              "DocumentMoniker": "C:\\Users\\Lenovo\\AppData\\Local\\User Name\\com.companyname.code7app\\Data\\TotalSettings.json",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\AppData\\Local\\User Name\\com.companyname.code7app\\Data\\TotalSettings.json",
+              "ToolTip": "C:\\Users\\Lenovo\\AppData\\Local\\User Name\\com.companyname.code7app\\Data\\TotalSettings.json",
+              "RelativeToolTip": "..\\..\\..\\..\\AppData\\Local\\User Name\\com.companyname.code7app\\Data\\TotalSettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-08-24T02:42:44.61Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "MainPage.xaml",
+              "DocumentMoniker": "C:\\Users\\Lenovo\\source\\repos\\FirstPanumas\\Code7App\\Views\\MainPage.xaml",
+              "RelativeDocumentMoniker": "Views\\MainPage.xaml",
+              "ToolTip": "C:\\Users\\Lenovo\\source\\repos\\FirstPanumas\\Code7App\\Views\\MainPage.xaml",
+              "RelativeToolTip": "Views\\MainPage.xaml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAABAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-08-21T01:52:25.676Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "SettingsPage.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Lenovo\\source\\repos\\FirstPanumas\\Code7App\\Views\\SettingsPage.xaml.cs",
               "RelativeDocumentMoniker": "Views\\SettingsPage.xaml.cs",
@@ -57,12 +116,11 @@
               "RelativeToolTip": "Views\\SettingsPage.xaml.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-24T02:00:51.334Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-24T02:00:51.334Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 6,
               "Title": "SettingsPage.xaml",
               "DocumentMoniker": "C:\\Users\\Lenovo\\source\\repos\\FirstPanumas\\Code7App\\Views\\SettingsPage.xaml",
               "RelativeDocumentMoniker": "Views\\SettingsPage.xaml",
@@ -75,7 +133,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 5,
               "Title": "AppConfig.cs",
               "DocumentMoniker": "C:\\Users\\Lenovo\\source\\repos\\FirstPanumas\\Code7App\\Models\\AppConfig.cs",
               "RelativeDocumentMoniker": "Models\\AppConfig.cs",
@@ -83,12 +141,11 @@
               "RelativeToolTip": "Models\\AppConfig.cs",
               "ViewState": "AgIAAAoAAAAAAAAAAAAkwA8AAAA+AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-24T01:19:04.548Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-24T01:19:04.548Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 8,
               "Title": "MainViewModel.cs",
               "DocumentMoniker": "C:\\Users\\Lenovo\\source\\repos\\FirstPanumas\\Code7App\\ViewModels\\MainViewModel.cs",
               "RelativeDocumentMoniker": "ViewModels\\MainViewModel.cs",
@@ -96,12 +153,11 @@
               "RelativeToolTip": "ViewModels\\MainViewModel.cs",
               "ViewState": "AgIAAJoAAAAAAAAAAAAgwKAAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-21T01:44:11.998Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-21T01:44:11.998Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 4,
               "Title": "MainViewModel.cs",
               "DocumentMoniker": "C:\\Users\\Lenovo\\AppData\\Local\\SourceServer\\b2ea291055be74720c468776bb1b76adf560819b58d94d2830d72445fda59c2e\\ViewModels\\MainViewModel.cs",
               "RelativeDocumentMoniker": "..\\..\\..\\..\\AppData\\Local\\SourceServer\\b2ea291055be74720c468776bb1b76adf560819b58d94d2830d72445fda59c2e\\ViewModels\\MainViewModel.cs",
@@ -109,12 +165,11 @@
               "RelativeToolTip": "..\\..\\..\\..\\AppData\\Local\\SourceServer\\b2ea291055be74720c468776bb1b76adf560819b58d94d2830d72445fda59c2e\\ViewModels\\MainViewModel.cs",
               "ViewState": "AgIAAA4BAAAAAAAAAAAgwE0BAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-24T01:22:00.823Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-24T01:22:00.823Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 11,
               "Title": "MainPage.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Lenovo\\source\\repos\\FirstPanumas\\Code7App\\Views\\MainPage.xaml.cs",
               "RelativeDocumentMoniker": "Views\\MainPage.xaml.cs",
@@ -126,7 +181,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 9,
               "Title": "OrderPage.xaml",
               "DocumentMoniker": "C:\\Users\\Lenovo\\source\\repos\\FirstPanumas\\Code7App\\Views\\OrderPage.xaml",
               "RelativeDocumentMoniker": "Views\\OrderPage.xaml",
@@ -134,24 +189,12 @@
               "RelativeToolTip": "Views\\OrderPage.xaml",
               "ViewState": "AgIAAMMAAAAAAAAAAAAEwM4AAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-08-21T03:55:09.85Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "MainPage.xaml",
-              "DocumentMoniker": "C:\\Users\\Lenovo\\source\\repos\\FirstPanumas\\Code7App\\Views\\MainPage.xaml",
-              "RelativeDocumentMoniker": "Views\\MainPage.xaml",
-              "ToolTip": "C:\\Users\\Lenovo\\source\\repos\\FirstPanumas\\Code7App\\Views\\MainPage.xaml",
-              "RelativeToolTip": "Views\\MainPage.xaml",
-              "ViewState": "AgIAADkAAAAAAAAAAAAUwFUAAABlAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-08-21T01:52:25.676Z",
+              "WhenOpened": "2026-08-21T03:55:09.85Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 10,
               "Title": "OrderViewModel.cs",
               "DocumentMoniker": "C:\\Users\\Lenovo\\source\\repos\\FirstPanumas\\Code7App\\ViewModels\\OrderViewModel.cs",
               "RelativeDocumentMoniker": "ViewModels\\OrderViewModel.cs",
