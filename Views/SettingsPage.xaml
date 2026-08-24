@@ -19,9 +19,23 @@
     <Grid RowDefinitions="Auto, *, Auto">
         <!-- HEADER -->
         <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Padding="20" BackgroundColor="#F5F5F5">
+
             <Label Grid.Column="0" Text="Configuration Settings" FontSize="22" FontAttributes="Bold" VerticalOptions="Center" />
-            <Button Grid.Column="1" Text="Import Total Setting (.json/.txt)" Command="{Binding ImportTotalSettingCommand}" 
-                    BackgroundColor="{StaticResource ModalHeaderColor}" TextColor="White" HeightRequest="40" />
+
+            <!-- ใช้ HorizontalStackLayout จัดกลุ่มปุ่มให้อยู่ชิดขวา และกำหนด Spacing="10" สำหรับระยะห่างระหว่างปุ่ม -->
+            <HorizontalStackLayout Grid.Column="1" Spacing="10">
+
+                <!-- ปุ่มเปิดโฟลเดอร์สำหรับ Debug -->
+                <Button Text="📂 เปิดโฟลเดอร์ Settings" 
+                Command="{Binding OpenSettingsFolderCommand}" 
+                BackgroundColor="Gray" TextColor="White" HeightRequest="40" />
+
+                <!-- ปุ่ม Import เดิมของคุณ -->
+                <Button Text="Import Total Setting (.json/.txt)" 
+                Command="{Binding ImportTotalSettingCommand}" 
+                BackgroundColor="{StaticResource ModalHeaderColor}" TextColor="White" HeightRequest="40" />
+
+            </HorizontalStackLayout>
         </Grid>
 
         <!-- BODY -->
@@ -33,7 +47,7 @@
                     <VerticalStackLayout Spacing="15">
                         <Label Text="1. Patient Register" FontAttributes="Bold" FontSize="18" TextColor="{StaticResource SidebarBgColor}" />
 
-                        <Grid ColumnDefinitions="150, *, Auto" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto" RowSpacing="10" ColumnSpacing="10">
+                        <Grid ColumnDefinitions="150, *, Auto" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto,Auto" RowSpacing="10" ColumnSpacing="10">
                             <!-- ... (Row 0 ถึง Row 4 คงเดิม) ... -->
                             <Label Grid.Row="0" Grid.Column="0" Text="Default CSV Path:" VerticalOptions="Center" />
                             <Entry Grid.Row="0" Grid.Column="1" Text="{Binding Config.PatientRegister.DefaultPath}" IsReadOnly="True" />
@@ -58,6 +72,10 @@
                             <!-- เพิ่ม Row 6: ตั้งค่าแพทย์ -->
                             <Label Grid.Row="6" Grid.Column="0" Text="Doctor List:" VerticalOptions="Center" />
                             <Entry Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Config.PatientRegister.DoctorList, Mode=TwoWay}" Placeholder="คั่นด้วยคอมมา" />
+
+                            <!-- 🌟 เพิ่ม Row 7: Dob Column (สำหรับ Filter วันเกิด) -->
+                            <Label Grid.Row="7" Grid.Column="0" Text="DOB Column:" VerticalOptions="Center" />
+                            <Entry Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Config.PatientRegister.DobColumn, Mode=TwoWay}" Placeholder="ระบุชื่อคอลัมน์วันเกิด เช่น DOB, BirthDate" />
                         </Grid>
                     </VerticalStackLayout>
                 </Border>
@@ -66,7 +84,7 @@
                 <Border BackgroundColor="White" Stroke="{StaticResource BorderColor}" StrokeThickness="1" Padding="20">
                     <VerticalStackLayout Spacing="15">
                         <Label Text="2. Order Item" FontAttributes="Bold" FontSize="18" TextColor="{StaticResource SidebarBgColor}" />
-                        <Grid ColumnDefinitions="150, *, Auto" RowDefinitions="Auto, Auto, Auto, Auto" RowSpacing="10" ColumnSpacing="10">
+                        <Grid ColumnDefinitions="150, *, Auto" RowDefinitions="Auto, Auto, Auto, Auto, Auto , Auto" RowSpacing="10" ColumnSpacing="10">
                             <Label Grid.Row="0" Grid.Column="0" Text="Default CSV Path:" VerticalOptions="Center" />
                             <Entry Grid.Row="0" Grid.Column="1" Text="{Binding Config.OrderItem.DefaultPath}" IsReadOnly="True" />
                             <Button Grid.Row="0" Grid.Column="2" Text="Browse..." Command="{Binding BrowseCsvPathCommand}" CommandParameter="Item" />
@@ -76,6 +94,14 @@
                             <Entry Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Config.OrderItem.DropdownColumn, Mode=TwoWay}" />
                             <Label Grid.Row="3" Grid.Column="0" Text="Calculate Column:" VerticalOptions="Center" />
                             <Entry Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Config.OrderItem.CalculateColumn, Mode=TwoWay}" />
+                            <Label Grid.Row="4" Grid.Column="0" Text="Dropdown List:" VerticalOptions="Center" />
+                            <Entry Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" 
+                                Text="{Binding Config.OrderItem.DropdownList, Mode=TwoWay}" 
+                                Placeholder="เช่น OPD, IPD, NSHO (คั่นด้วยคอมมา)" />
+                            <Label Grid.Row="5" Grid.Column="0" Text="Form Columns:" VerticalOptions="Center" />
+                            <Entry Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" 
+                                Text="{Binding Config.OrderItem.FormDisplayColumns, Mode=TwoWay}" 
+                                Placeholder="เช่น รหัสรายการ, ชื่อรายการ, ราคา (คั่นด้วยคอมมา)" /> 
                         </Grid>
                     </VerticalStackLayout>
                 </Border>

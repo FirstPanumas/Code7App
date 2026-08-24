@@ -1,8 +1,10 @@
 ﻿using Code7App.ViewModels;
 using CommunityToolkit.Mvvm.Messaging;
+using Code7App.Messages;
 using System.ComponentModel;
-using System.Diagnostics; // สำคัญ: ใช้สำหรับ Process.Start()
+using System.Diagnostics;
 using System.Globalization;
+using Microsoft.Maui.Graphics;
 
 namespace Code7App.Views;
 
@@ -17,48 +19,51 @@ public partial class MainPage : ContentPage
         _viewModel = viewModel;
         BindingContext = _viewModel;
 
-        // รอรับคำสั่งสร้าง PDF จาก ViewModel
         WeakReferenceMessenger.Default.Register<PrintHtmlMessage>(this, (r, m) =>
         {
             MainThread.BeginInvokeOnMainThread(async () =>
             {
                 try
                 {
-                    // 1. นำข้อมูล HTML ใส่เข้าไปใน WebView
+                    // 🌟 1. สร้าง TaskCompletionSource เพื่อดักรอ Event Navigated
+                    var tcs = new TaskCompletionSource<bool>();
+
+                    void OnNavigated(object? sender, WebNavigatedEventArgs e)
+                    {
+                        PrintHelperWebView.Navigated -= OnNavigated;
+                        tcs.TrySetResult(true);
+                    }
+
+                    PrintHelperWebView.Navigated += OnNavigated;
+
+                    // 2. นำข้อมูล HTML ใส่เข้าไปใน WebView
                     PrintHelperWebView.Source = new HtmlWebViewSource { Html = m.HtmlContent };
 
-                    // 2. หน่วงเวลาให้ WebView2 สร้าง DOM และจัดรูปแบบ CSS ให้เสร็จสมบูรณ์
-                    await Task.Delay(1000);
+                    // 🌟 3. รอจนกว่า WebView จะโหลด HTML เสร็จ (หรือ Timeout 5 วินาทีป้องกันแอปค้าง)
+                    await Task.WhenAny(tcs.Task, Task.Delay(5000));
+
+                    // 🌟 4. หน่วงเวลาเพิ่มอีกเล็กน้อย เพื่อให้ WebView2 เรนเดอร์ UI และ CSS ลง DOM จนสมบูรณ์
+                    await Task.Delay(500);
 
 #if WINDOWS
                     if (PrintHelperWebView.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.WebView2 webView2)
                     {
-                        // บังคับ Initialize ให้แน่ใจว่า CoreWebView2 พร้อมทำงาน
                         await webView2.EnsureCoreWebView2Async();
 
-                        // กำหนดชื่อและพาธสำหรับเก็บไฟล์ PDF ชั่วคราวใน Cache
                         string fileName = $"Appointment_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
                         string filePath = Path.Combine(FileSystem.CacheDirectory, fileName);
 
-                        // สร้าง PrintSettings สำหรับกระดาษ A5 แนวนอน
                         var printSettings = webView2.CoreWebView2.Environment.CreatePrintSettings();
                         
-                        // ตั้งค่าเป็นแนวนอน
                         printSettings.Orientation = Microsoft.Web.WebView2.Core.CoreWebView2PrintOrientation.Landscape;
-                        
-                        // แก้ไข: ใช้ PageWidth และ PageHeight (หน่วยเป็นนิ้ว)
-                        printSettings.PageWidth = 5.827;
-                        printSettings.PageHeight = 8.268;
-                        
-                        // อนุญาตให้พิมพ์สีพื้นหลัง CSS (ถ้ามี)
+                        printSettings.PageWidth = 8.268;
+                        printSettings.PageHeight = 5.827;
                         printSettings.ShouldPrintBackgrounds = true;
 
-                        // สั่งแปลง HTML เป็น PDF โดยใช้การตั้งค่า printSettings
                         bool isSuccess = await webView2.CoreWebView2.PrintToPdfAsync(filePath, printSettings);
 
                         if (isSuccess)
                         {
-                            // ส่งไฟล์ PDF ให้ Chrome ทำการเปิด
                             OpenPdfWithChrome(filePath);
                         }
                         else
@@ -80,15 +85,12 @@ public partial class MainPage : ContentPage
     {
         base.OnAppearing();
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
-
-        // ต้องมีบรรทัดนี้เพื่อสั่ง ViewModel ให้ทำงาน
         await _viewModel.InitializeAsync();
     }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        // Unsubscribe ป้องกัน Memory Leak
         _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
     }
 
@@ -111,8 +113,6 @@ public partial class MainPage : ContentPage
         var config = _viewModel.CurrentConfig.PatientRegister;
         var stringToBoolConv = new StringToBoolConverter();
 
-        var defaultPickerItems = new List<string> { "OPD", "IPD", "ER", "General", "VIP" };
-
         CsvHeaderGrid.ColumnDefinitions.Clear();
         CsvHeaderGrid.Children.Clear();
 
@@ -124,7 +124,8 @@ public partial class MainPage : ContentPage
             {
                 Text = columns[i],
                 FontAttributes = FontAttributes.Bold,
-                LineBreakMode = LineBreakMode.TailTruncation
+                LineBreakMode = LineBreakMode.TailTruncation,
+                TextColor = Colors.Black
             };
             CsvHeaderGrid.Add(headerLabel, i, 0);
         }
@@ -163,15 +164,14 @@ public partial class MainPage : ContentPage
                     cb.SetBinding(CheckBox.IsCheckedProperty, new Binding($"[{colName}]", BindingMode.TwoWay, stringToBoolConv));
                     cellView = cb;
                 }
-                //else if (!string.IsNullOrWhiteSpace(config.DropdownColumn) && colName.Equals(config.DropdownColumn, StringComparison.OrdinalIgnoreCase))
-                //{
-                //    var picker = new Picker { ItemsSource = defaultPickerItems, HorizontalOptions = LayoutOptions.Fill, VerticalOptions = LayoutOptions.Center };
-                //    picker.SetBinding(Picker.SelectedItemProperty, $"[{colName}]");
-                //    cellView = picker;
-                //}
                 else
                 {
-                    var label = new Label { LineBreakMode = LineBreakMode.TailTruncation, VerticalOptions = LayoutOptions.Center };
+                    var label = new Label
+                    {
+                        LineBreakMode = LineBreakMode.TailTruncation,
+                        VerticalOptions = LayoutOptions.Center,
+                        TextColor = Colors.Black
+                    };
                     label.SetBinding(Label.TextProperty, $"[{colName}]");
 
                     if (!string.IsNullOrWhiteSpace(config.CalculateColumn) && colName.Equals(config.CalculateColumn, StringComparison.OrdinalIgnoreCase))
@@ -189,11 +189,6 @@ public partial class MainPage : ContentPage
             }
             return rowGrid;
         });
-    }
-
-    private async void OnSettingsClicked(object sender, EventArgs e)
-    {
-        await Shell.Current.GoToAsync(nameof(SettingsPage));
     }
 
     public class StringToBoolConverter : IValueConverter
@@ -220,7 +215,6 @@ public partial class MainPage : ContentPage
         }
     }
 
-    // เพิ่มเมธอดนี้สำหรับจัดการ Process การเปิดไฟล์ผ่าน Chrome พร้อม Fallback
     private void OpenPdfWithChrome(string filePath)
     {
         try
@@ -234,12 +228,16 @@ public partial class MainPage : ContentPage
         }
         catch
         {
-            // Fallback: หากเครื่องไม่มี Chrome จะเปิดด้วยแอปอ่าน PDF ค่าเริ่มต้นของ Windows (เช่น Edge)
             Process.Start(new ProcessStartInfo
             {
                 FileName = filePath,
                 UseShellExecute = true
             });
         }
+    }
+
+    private async void OnSettingsClicked(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(SettingsPage));
     }
 }

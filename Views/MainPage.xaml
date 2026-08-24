@@ -3,13 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:vm="clr-namespace:Code7App.ViewModels"
+             xmlns:models="clr-namespace:Code7App.Models" 
              x:Class="Code7App.Views.MainPage"
              BackgroundColor="{StaticResource MainBgColor}">
 
     <Grid>
-        <!-- 1. MAIN UI -->
         <Grid RowDefinitions="Auto, *, Auto">
-
 
             <!-- HEADER -->
             <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto" Padding="20" BackgroundColor="#F5F5F5">
@@ -17,10 +16,11 @@
                 <!-- ปุ่ม Open CSV -->
                 <Button Grid.Row="0" Grid.Column="0" Text="Open CSV" Command="{Binding OpenCsvCommand}" BackgroundColor="#E0E0E0" TextColor="Black" HeightRequest="40" VerticalOptions="End" />
 
-                <!-- ส่วน Search และ Filter จัดชิดซ้ายและจำกัดขนาดความกว้าง -->
-                <Grid Grid.Row="0" Grid.Column="1" Margin="20,0" ColumnDefinitions="Auto, 150" ColumnSpacing="10" HorizontalOptions="Start">
-
-                    <!-- 1. ช่องค้นหา (ลดความกว้างลงเหลือ 300) -->
+                <!-- ส่วน Search และ Filter -->
+                <!-- 🌟 แก้ไข ColumnDefinitions เป็น 3 ช่อง เพื่อรองรับ DatePicker -->
+               
+                <Grid Grid.Row="0" Grid.Column="1" Margin="20,0" ColumnDefinitions="Auto, 150, 250" ColumnSpacing="10" HorizontalOptions="Start">
+                        <!-- 1. ช่องค้นหา -->
                     <VerticalStackLayout Grid.Column="0" Spacing="2">
                         <Label Text="ค้นหาข้อมูล" FontSize="12" TextColor="Gray" FontAttributes="Bold" Margin="2,0,0,0"/>
                         <Border Stroke="{StaticResource BorderColor}" StrokeThickness="1" BackgroundColor="White" Padding="10,0" HeightRequest="40" WidthRequest="300">
@@ -29,31 +29,56 @@
                             </Border.StrokeShape>
                             <Grid ColumnDefinitions="Auto, *">
                                 <Label Grid.Column="0" Text="🔍" VerticalOptions="Center" TextColor="Gray" Margin="5,0,10,0"/>
-                                <Entry Grid.Column="1" Text="{Binding SearchText, Mode=TwoWay}" 
-                                       Placeholder="พิมพ์ข้อความที่ต้องการค้นหา..." 
-                                       BackgroundColor="Transparent" 
-                                       VerticalOptions="Center" 
-                                       HorizontalOptions="Fill" />
+                                <Entry Grid.Column="1" Text="{Binding SearchText, Mode=TwoWay}" Placeholder="พิมพ์ข้อความที่ต้องการค้นหา..." BackgroundColor="Transparent" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Fill" />
                             </Grid>
                         </Border>
                     </VerticalStackLayout>
 
-                    <!-- 2. Dropdown Filter (ขยับมาชิดซ้ายตามช่องค้นหาอัตโนมัติ) -->
+                    <!-- 2. Dropdown Filter -->
                     <VerticalStackLayout Grid.Column="1" Spacing="2">
                         <Label Text="{Binding FilterLabel}" FontSize="12" TextColor="Gray" FontAttributes="Bold" Margin="2,0,0,0" />
                         <Border Stroke="{StaticResource BorderColor}" StrokeThickness="1" BackgroundColor="White" HeightRequest="40">
                             <Border.StrokeShape>
                                 <RoundRectangle CornerRadius="4" />
                             </Border.StrokeShape>
-                            <Picker ItemsSource="{Binding FilterOptions}"
-                                    SelectedItem="{Binding SelectedFilterValue, Mode=TwoWay}"
-                                    TextColor="Black" 
-                                    VerticalOptions="Center" 
-                                    HorizontalOptions="Fill"
-                                    Margin="10,0" />
+                            <Picker ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilterValue, Mode=TwoWay}" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Fill" Margin="10,0" />
                         </Border>
                     </VerticalStackLayout>
 
+                    <!-- 3. Filter วันเกิด -->
+                    <VerticalStackLayout Grid.Column="2" Spacing="2">
+                        <Label Text="ค้นหาตามวันเกิด" FontSize="12" TextColor="Gray" FontAttributes="Bold" Margin="2,0,0,0" />
+
+                        <!-- 🌟 1. เปลี่ยนคอลัมน์แรกจาก Auto เป็น 35 เพื่อบีบพื้นที่ว่างที่มองไม่เห็นของ CheckBox -->
+                        <Grid ColumnDefinitions="35, *" ColumnSpacing="0" HeightRequest="40" HorizontalOptions="Fill">
+
+                            <!-- 🌟 2. เพิ่ม HorizontalOptions="Start" และลบ Margin ติดลบออก -->
+                            <CheckBox Grid.Column="0" 
+                                      IsChecked="{Binding UseDobFilter}" 
+                                      Color="#17859F" 
+                                      HorizontalOptions="Start"
+                                      VerticalOptions="Center" />
+
+                            <Border Grid.Column="1" 
+                                    Stroke="{StaticResource BorderColor}" 
+                                    StrokeThickness="1" 
+                                    BackgroundColor="White" 
+                                    HorizontalOptions="Fill">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="4" />
+                                </Border.StrokeShape>
+
+                                <DatePicker Date="{Binding FilterDob, Mode=TwoWay}" 
+                                            IsEnabled="{Binding UseDobFilter}" 
+                                            Format="M/d/yyyy"
+                                            TextColor="Black" 
+                                            BackgroundColor="Transparent" 
+                                            Margin="5,0" 
+                                            HorizontalOptions="Fill"
+                                            VerticalOptions="Center" />
+                            </Border>
+                        </Grid>
+                    </VerticalStackLayout>
                 </Grid>
 
                 <!-- ปุ่ม Refresh และ Settings -->
@@ -63,41 +88,21 @@
                 </HorizontalStackLayout>
 
                 <!-- จำนวนผลลัพธ์การค้นหา -->
-                <Label Grid.Row="1" Grid.Column="1" 
-                       Text="{Binding SearchResultMessage}" 
-                       TextColor="#17859F" 
-                       FontSize="12" 
-                       FontAttributes="Bold"
-                       Margin="22,5,0,0" 
-                       VerticalOptions="Start"
-                       HorizontalOptions="Start"/>
+                <Label Grid.Row="1" Grid.Column="1" Text="{Binding SearchResultMessage}" TextColor="#17859F" FontSize="12" FontAttributes="Bold" Margin="22,5,0,0" VerticalOptions="Start" HorizontalOptions="Start"/>
 
             </Grid>
+
             <!-- BODY -->
             <Grid Grid.Row="1" ColumnDefinitions="7*, 3*" Padding="20" ColumnSpacing="20">
-
-                <!-- Left 70%: Dynamic CSV Data Grid -->
                 <Grid Grid.Column="0" RowDefinitions="*, Auto" RowSpacing="10">
                     <Border Grid.Row="0" BackgroundColor="White" Stroke="{StaticResource BorderColor}" StrokeThickness="1">
-
                         <ScrollView Orientation="Horizontal">
                             <Grid RowDefinitions="Auto, *">
-                                <!-- Header Row -->
                                 <Grid x:Name="CsvHeaderGrid" Grid.Row="0" BackgroundColor="#F0F0F0" Padding="10" />
-
-                                <!-- Data Rows -->
-                                <CollectionView x:Name="CsvDataGrid"
-                                                Grid.Row="1"
-                                                ItemsSource="{Binding CsvRows}"
-                                                SelectedItem="{Binding SelectedPatient, Mode=TwoWay}"
-                                                SelectionMode="Single">
-                                </CollectionView>
+                                <CollectionView x:Name="CsvDataGrid" Grid.Row="1" ItemsSource="{Binding CsvRows}" SelectedItem="{Binding SelectedPatient, Mode=TwoWay}" SelectionMode="Single"/>
                             </Grid>
                         </ScrollView>
-
                     </Border>
-
-                    <!-- Pagination Controls -->
                     <Border Grid.Row="1" BackgroundColor="White" Stroke="{StaticResource BorderColor}" StrokeThickness="1" Padding="10">
                         <Grid ColumnDefinitions="Auto, *, Auto">
                             <Button Grid.Column="0" Text="&lt; Prev" Command="{Binding PreviousPageCommand}" BackgroundColor="#E0E0E0" TextColor="Black" WidthRequest="80" />
@@ -112,26 +117,22 @@
                     </Border>
                 </Grid>
 
-                <!-- Right 30%: Patient Details -->
                 <Border Grid.Column="1" BackgroundColor="White" Stroke="{StaticResource BorderColor}" StrokeThickness="1" Padding="15">
                     <Grid RowDefinitions="Auto, *">
-                        <Label Grid.Row="0" Text="Patient Details" FontAttributes="Bold" FontSize="18" Margin="0,0,0,10"/>
-
+                        <Label Grid.Row="0" Text="ข้อมูลผู้ป่วย" FontAttributes="Bold" FontSize="18" Margin="0,0,0,10"/>
                         <ScrollView Grid.Row="1">
-                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding SelectedPatient}">
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding DisplayPatientDetails}">
                                 <BindableLayout.ItemTemplate>
-                                    <DataTemplate>
-                                        <VerticalStackLayout Margin="0,0,0,10">
-                                            <Label Text="{Binding Key}" FontSize="12" TextColor="Gray" />
-                                            <Label Text="{Binding Value}" FontSize="14" TextColor="Black" FontAttributes="Bold" />
-                                        </VerticalStackLayout>
+                                    <DataTemplate x:DataType="models:PatientDetailModel">
+                                        <Grid ColumnDefinitions="150, *" Margin="0,0,0,8">
+                                            <Label Grid.Column="0" Text="{Binding Key}" TextColor="Gray" FontSize="13" VerticalOptions="Center" />
+                                            <Label Grid.Column="1" Text="{Binding Value}" FontAttributes="Bold" FontSize="14" TextColor="Black" VerticalOptions="Center" />
+                                        </Grid>
                                     </DataTemplate>
                                 </BindableLayout.ItemTemplate>
                             </VerticalStackLayout>
                         </ScrollView>
-
-                        <Label Grid.Row="1" Text="Select a row to view details..." TextColor="Gray" 
-                               IsVisible="{Binding SelectedPatient, Converter={x:StaticResource IsNullConverter}}" />
+                        <Label Grid.Row="1" Text="Select a row to view details..." TextColor="Gray" IsVisible="{Binding SelectedPatient, Converter={x:StaticResource IsNullConverter}}" />
                     </Grid>
                 </Border>
             </Grid>
@@ -139,42 +140,33 @@
             <!-- FOOTER -->
             <Grid Grid.Row="2" Padding="20" BackgroundColor="#F5F5F5">
                 <HorizontalStackLayout HorizontalOptions="End" Spacing="15">
-                    <Button Text="สร้าง Form Order Item" BackgroundColor="Gray" TextColor="White" />
-                    <Button Text="สร้าง Form Register" Command="{Binding OpenRegisterModalCommand}" BackgroundColor="{StaticResource ModalHeaderColor}" TextColor="White" />
+                    <Button Text="สร้างเอกสาร Register" Command="{Binding OpenRegisterModalCommand}" BackgroundColor="{StaticResource ModalHeaderColor}" TextColor="White" />
+                    <Button Text="สร้างเอกสาร Order" Command="{Binding OpenOrderPageCommand}" BackgroundColor="#17859F" TextColor="White" />
                 </HorizontalStackLayout>
             </Grid>
         </Grid>
 
         <!-- 2. MODAL OVERLAY (Register Form) -->
         <Grid BackgroundColor="#80000000" IsVisible="{Binding IsRegisterModalVisible}">
-            <Border WidthRequest="800" VerticalOptions="Center" HorizontalOptions="Center" 
-                    BackgroundColor="White" StrokeShape="RoundRectangle 8" StrokeThickness="0">
+            <Border WidthRequest="800" VerticalOptions="Center" HorizontalOptions="Center" BackgroundColor="White" StrokeShape="RoundRectangle 8" StrokeThickness="0">
                 <Border.Shadow>
                     <Shadow Brush="Black" Offset="0,10" Radius="20" Opacity="0.3" />
                 </Border.Shadow>
 
                 <Grid RowDefinitions="50, *, 70" MaximumHeightRequest="700">
-
-                    <!-- Modal Header -->
                     <Grid Grid.Row="0" BackgroundColor="{StaticResource ModalHeaderColor}" Padding="15,0">
                         <Label Text="Patient Registration Form" TextColor="White" FontSize="18" FontAttributes="Bold" VerticalOptions="Center" />
-                        <ImageButton Source="dotnet_bot.png" BackgroundColor="Transparent" 
-                                     Command="{Binding CloseRegisterModalCommand}" 
-                                     HorizontalOptions="End" VerticalOptions="Center" HeightRequest="20" WidthRequest="20" />
+                        <ImageButton Source="dotnet_bot.png" BackgroundColor="Transparent" Command="{Binding CloseRegisterModalCommand}" HorizontalOptions="End" VerticalOptions="Center" HeightRequest="20" WidthRequest="20" />
                     </Grid>
 
-                    <!-- Modal Body -->
                     <ScrollView Grid.Row="1">
                         <VerticalStackLayout Padding="30" Spacing="20">
-
-                            <!-- Selected Patient Information -->
                             <Border BackgroundColor="#F9F9F9" Stroke="{StaticResource BorderColor}" StrokeThickness="1" Padding="15">
                                 <VerticalStackLayout>
                                     <Label Text="Selected Patient Information" FontAttributes="Bold" FontSize="14" Margin="0,0,0,15" TextColor="{StaticResource SidebarBgColor}"/>
-
                                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding DisplayPatientDetails}">
                                         <BindableLayout.ItemTemplate>
-                                            <DataTemplate>
+                                            <DataTemplate x:DataType="models:PatientDetailModel">
                                                 <Grid ColumnDefinitions="150, *" Margin="0,0,0,8">
                                                     <Label Grid.Column="0" Text="{Binding Key}" TextColor="Gray" FontSize="13" VerticalOptions="Center" />
                                                     <Label Grid.Column="1" Text="{Binding Value}" FontAttributes="Bold" FontSize="14" TextColor="Black" VerticalOptions="Center" />
@@ -185,30 +177,18 @@
                                 </VerticalStackLayout>
                             </Border>
 
-                            <!-- Form Input Fields -->
                             <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" ColumnSpacing="20" RowSpacing="15">
-
-                                <!-- Row 0: วันที่ และ เวลา -->
                                 <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="*, *" ColumnSpacing="10">
-
-                                    <!-- วันที่ -->
                                     <VerticalStackLayout Grid.Column="0" Spacing="5">
                                         <Label Text="วันที่ *" FontSize="12" TextColor="Gray" />
                                         <Border Stroke="{StaticResource BorderColor}" StrokeThickness="1" BackgroundColor="White" HeightRequest="40">
                                             <Border.StrokeShape>
                                                 <RoundRectangle CornerRadius="4" />
                                             </Border.StrokeShape>
-                                            <DatePicker Date="{Binding AppointmentDate, Mode=TwoWay}" 
-                                                        Format="dd/MM/yyyy"
-                                                        TextColor="Black" 
-                                                        BackgroundColor="Transparent"
-                                                        VerticalOptions="Center" 
-                                                        HorizontalOptions="Fill"
-                                                        Margin="10,0" />
+                                            <DatePicker Date="{Binding AppointmentDate, Mode=TwoWay}" Format="dd/MM/yyyy" TextColor="Black" BackgroundColor="Transparent" VerticalOptions="Center" HorizontalOptions="Fill" Margin="10,0" />
                                         </Border>
                                     </VerticalStackLayout>
 
-                                    <!-- เวลา -->
                                     <VerticalStackLayout Grid.Column="1" Spacing="5">
                                         <Label Text="เวลา (ชม. : นาที) *" FontSize="12" TextColor="Gray" />
                                         <Grid HeightRequest="40" ColumnDefinitions="*, Auto, *" ColumnSpacing="5">
@@ -216,30 +196,19 @@
                                                 <Border.StrokeShape>
                                                     <RoundRectangle CornerRadius="4" />
                                                 </Border.StrokeShape>
-                                                <Picker ItemsSource="{Binding HourItems}"
-                                                        SelectedItem="{Binding SelectedHour, Mode=TwoWay}"
-                                                        TextColor="Black" 
-                                                        HorizontalOptions="Fill"
-                                                        VerticalOptions="Fill" />
+                                                <Picker ItemsSource="{Binding HourItems}" SelectedItem="{Binding SelectedHour, Mode=TwoWay}" TextColor="Black" HorizontalOptions="Fill" VerticalOptions="Fill" />
                                             </Border>
-
                                             <Label Grid.Column="1" Text=":" VerticalOptions="Center" TextColor="Black" FontAttributes="Bold" />
-
                                             <Border Grid.Column="2" Stroke="{StaticResource BorderColor}" StrokeThickness="1" BackgroundColor="White">
                                                 <Border.StrokeShape>
                                                     <RoundRectangle CornerRadius="4" />
                                                 </Border.StrokeShape>
-                                                <Picker ItemsSource="{Binding MinuteItems}"
-                                                        SelectedItem="{Binding SelectedMinute, Mode=TwoWay}"
-                                                        TextColor="Black" 
-                                                        HorizontalOptions="Fill"
-                                                        VerticalOptions="Fill" />
+                                                <Picker ItemsSource="{Binding MinuteItems}" SelectedItem="{Binding SelectedMinute, Mode=TwoWay}" TextColor="Black" HorizontalOptions="Fill" VerticalOptions="Fill" />
                                             </Border>
                                         </Grid>
                                     </VerticalStackLayout>
                                 </Grid>
 
-                                <!-- Row 1: แผนก และ แพทย์ -->
                                 <Grid Grid.Row="1" Grid.Column="0" ColumnDefinitions="*, *" ColumnSpacing="10" Margin="0,10,0,0">
                                     <VerticalStackLayout Grid.Column="0" Spacing="5">
                                         <Label Text="แผนก *" FontSize="12" TextColor="Gray" />
@@ -247,13 +216,7 @@
                                             <Border.StrokeShape>
                                                 <RoundRectangle CornerRadius="4" />
                                             </Border.StrokeShape>
-                                            <Picker ItemsSource="{Binding DepartmentItems}" 
-                                                    SelectedItem="{Binding Department, Mode=TwoWay}"
-                                                    TextColor="Black" 
-                                                    BackgroundColor="Transparent"
-                                                    HorizontalOptions="Fill"
-                                                    VerticalOptions="Fill"
-                                                    Margin="5,0" />
+                                            <Picker ItemsSource="{Binding DepartmentItems}" SelectedItem="{Binding Department, Mode=TwoWay}" TextColor="Black" BackgroundColor="Transparent" HorizontalOptions="Fill" VerticalOptions="Fill" Margin="5,0" />
                                         </Border>
                                     </VerticalStackLayout>
 
@@ -263,76 +226,50 @@
                                             <Border.StrokeShape>
                                                 <RoundRectangle CornerRadius="4" />
                                             </Border.StrokeShape>
-                                            <Picker ItemsSource="{Binding DoctorItems}" 
-                                                    SelectedItem="{Binding Doctor, Mode=TwoWay}"
-                                                    TextColor="Black" 
-                                                    BackgroundColor="Transparent"
-                                                    HorizontalOptions="Fill"
-                                                    VerticalOptions="Fill"
-                                                    Margin="5,0" />
+                                            <Picker ItemsSource="{Binding DoctorItems}" SelectedItem="{Binding Doctor, Mode=TwoWay}" TextColor="Black" BackgroundColor="Transparent" HorizontalOptions="Fill" VerticalOptions="Fill" Margin="5,0" />
                                         </Border>
                                     </VerticalStackLayout>
                                 </Grid>
                             </Grid>
 
                             <Grid ColumnDefinitions="*, *" ColumnSpacing="20">
-
-                                <!-- อาการเบื้องต้น (Dx) -->
                                 <VerticalStackLayout Grid.Column="0" Spacing="5">
                                     <Label Text="Symptoms (อาการเบื้องต้น)" FontSize="12" TextColor="Gray" />
                                     <Border Stroke="{StaticResource BorderColor}" StrokeThickness="1" BackgroundColor="White">
                                         <Border.StrokeShape>
                                             <RoundRectangle CornerRadius="4" />
                                         </Border.StrokeShape>
-                                        <Editor Text="{Binding Dx, Mode=TwoWay}" 
-                                            Placeholder="ระบุอาการเบื้องต้น..." 
-                                            HeightRequest="80" 
-                                            TextColor="Black" 
-                                            BackgroundColor="Transparent"
-                                            Margin="10,5" />
+                                        <Editor Text="{Binding Dx, Mode=TwoWay}" Placeholder="ระบุอาการเบื้องต้น..." HeightRequest="80" TextColor="Black" BackgroundColor="Transparent" Margin="10,5" />
                                     </Border>
                                 </VerticalStackLayout>
 
-                                <!-- อาการแพ้ (Allergy) -->
                                 <VerticalStackLayout Grid.Column="1" Spacing="5">
                                     <Label Text="Allergy (อาการแพ้)" FontSize="12" TextColor="Gray" />
                                     <Border Stroke="{StaticResource BorderColor}" StrokeThickness="1" BackgroundColor="White">
                                         <Border.StrokeShape>
                                             <RoundRectangle CornerRadius="4" />
                                         </Border.StrokeShape>
-                                        <Editor Text="{Binding Allergy, Mode=TwoWay}" 
-                                            Placeholder="ระบุอาการแพ้ยา หรืออาหาร (ถ้ามี)..." 
-                                            HeightRequest="80" 
-                                            TextColor="Black" 
-                                            BackgroundColor="Transparent"
-                                            Margin="10,5" />        
+                                        <Editor Text="{Binding Allergy, Mode=TwoWay}" Placeholder="ระบุอาการแพ้ยา หรืออาหาร (ถ้ามี)..." HeightRequest="80" TextColor="Black" BackgroundColor="Transparent" Margin="10,5" />
                                     </Border>
                                 </VerticalStackLayout>
-
                             </Grid>
 
+                            <VerticalStackLayout Spacing="5">
+                                <Label Text="Payer" FontSize="12" TextColor="Gray" />
+                                <Border Stroke="{StaticResource BorderColor}" StrokeThickness="1" BackgroundColor="White" HeightRequest="40">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="4" />
+                                    </Border.StrokeShape>
+                                    <Entry Text="{Binding Payer, Mode=TwoWay}" Placeholder="ระบุชื่อ Payer..." TextColor="Black" BackgroundColor="Transparent" Margin="10,0" />
+                                </Border>
+                            </VerticalStackLayout>
                         </VerticalStackLayout>
                     </ScrollView>
 
-                    <!-- Modal Footer (แก้ไขเพิ่ม Grid.Row="2" และจัด Padding ใหม่) -->
-                    <Grid Grid.Row="2" ColumnDefinitions="*, *" ColumnSpacing="10" Padding="30,10" BackgroundColor="#F5F5F5">
-                        <Button Grid.Column="0"
-                                Text="Cancel" 
-                                Command="{Binding CloseRegisterModalCommand}" 
-                                BackgroundColor="LightGray" 
-                                TextColor="Black" 
-                                CornerRadius="4" />
-
-                        <Button Grid.Column="1"
-                                Text="Print" 
-                                Command="{Binding PrintRegistrationCommand}" 
-                                ImageSource="printer.png"
-                                ContentLayout="Left, 8"
-                                BackgroundColor="#2B0B98" 
-                                TextColor="White" 
-                                CornerRadius="4" />
+                    <Grid Grid.Row="2" ColumnDefinitions="Auto, *" ColumnSpacing="15" Padding="30,10" BackgroundColor="#F5F5F5">
+                        <Button Grid.Column="0" Text="Cancel" Command="{Binding CloseRegisterModalCommand}" BackgroundColor="#E0E0E0" TextColor="Black" HeightRequest="50" WidthRequest="100" FontAttributes="Bold" CornerRadius="8" />
+                        <Button Grid.Column="1" Text="🖨️ สั่งพิมพ์ / ยืนยัน Order" Command="{Binding PrintRegistrationCommand}" BackgroundColor="#17859F" TextColor="White" HeightRequest="50" FontAttributes="Bold" CornerRadius="8" />
                     </Grid>
-
                 </Grid>
             </Border>
         </Grid>
@@ -340,24 +277,12 @@
         <!-- 3. LOADING OVERLAY -->
         <Grid BackgroundColor="#80000000" IsVisible="{Binding IsLoading}">
             <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="15">
-                <ActivityIndicator IsRunning="{Binding IsLoading}" 
-                                   Color="{StaticResource ModalHeaderColor}" 
-                                   WidthRequest="60" 
-                                   HeightRequest="60" />
-                <Label Text="Loading Data..." 
-                       TextColor="White" 
-                       FontAttributes="Bold" 
-                       FontSize="16" 
-                       HorizontalOptions="Center" />
+                <ActivityIndicator IsRunning="{Binding IsLoading}" Color="{StaticResource ModalHeaderColor}" WidthRequest="60" HeightRequest="60" />
+                <Label Text="Loading Data..." TextColor="White" FontAttributes="Bold" FontSize="16" HorizontalOptions="Center" />
             </VerticalStackLayout>
         </Grid>
 
         <!-- WEBVIEW สำหรับจัดการ PRINT -->
-        <WebView x:Name="PrintHelperWebView" 
-                 WidthRequest="800" 
-                 HeightRequest="1000" 
-                 TranslationX="-5000" 
-                 InputTransparent="True" />
-
+        <WebView x:Name="PrintHelperWebView" WidthRequest="800" HeightRequest="1000" TranslationX="-5000" InputTransparent="True" />
     </Grid>
 </ContentPage>
