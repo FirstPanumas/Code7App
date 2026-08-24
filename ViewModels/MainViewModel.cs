@@ -137,12 +137,19 @@ public partial class MainViewModel : ObservableObject
         {
             IsLoading = true;
 
-            // 1. อ่านและประมวลผลไฟล์ใน Background Thread อย่างสมบูรณ์
+            // 1. ตรวจสอบไฟล์ก่อนเลย หากไม่พบให้เรียก Popup เลยโดยไม่ต้องใช้ throw exception
+            if (!File.Exists(filePath))
+            {
+                // ทำการแยกฟังก์ชันแจ้งเตือนออกมาเพื่อให้เรียกใช้ง่ายขึ้น
+                await PromptForNewFileAsync($"ไม่สามารถเข้าถึงเครือข่าย หรือหาไฟล์ไม่พบที่:\n{filePath}");
+                return; // ออกจากฟังก์ชันทันที โดยจะผ่าน finally เพื่อปิด IsLoading
+            }
+
+            // 2. อ่านและประมวลผลไฟล์ (ตอนนี้มั่นใจแล้วว่ามีไฟล์อยู่จริง)
             var (headers, tempRows) = await Task.Run(() =>
             {
                 var linesList = new List<string>();
 
-                // ใช้ FileStream เพื่อป้องกันการโดน Lock จากโปรแกรมอื่น
                 using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8, true))
                 {
@@ -177,7 +184,7 @@ public partial class MainViewModel : ObservableObject
 
             if (headers.Length == 0) return;
 
-            // 2. อัปเดต UI (โค้ดจะทำงานบน Main Thread อัตโนมัติหลัง await)
+            // 3. อัปเดต UI
             _allCsvRows = tempRows;
 
             string filterCol = CurrentConfig.PatientRegister?.DropdownColumn ?? string.Empty;
@@ -215,16 +222,62 @@ public partial class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            if (Application.Current?.MainPage != null)
-            {
-                // แจ้งเตือน Alert เมื่อเกิด Error (เช่น Network เข้าไม่ได้)
-                await Application.Current.MainPage.DisplayAlert("Error", $"ไม่สามารถโหลดไฟล์ CSV ได้:\n{ex.Message}", "OK");
-            }
+            // ดักจับ Error อื่นๆ ที่อาจเกิดขึ้นตอนอ่านไฟล์ เช่น ถูก Lock 100% หรือสิทธิ์เข้าถึง (Permissions)
+            await PromptForNewFileAsync($"เกิดข้อผิดพลาดในการโหลดไฟล์:\n{ex.Message}");
         }
         finally
         {
-            // บังคับปิด Loading ไม่ว่าจะโหลดสำเร็จหรือเกิด Error
             IsLoading = false;
+        }
+    }
+
+    private async Task PromptForNewFileAsync(string errorMessage)
+    {
+        if (Application.Current?.MainPage != null)
+        {
+            bool userWantsToPickFile = await Application.Current.MainPage.DisplayAlert(
+                "เชื่อมต่อไฟล์ไม่สำเร็จ",
+                $"{errorMessage}\n\nต้องการเลือกไฟล์ CSV ด้วยตนเองหรือไม่?",
+                "เลือกไฟล์ใหม่",
+                "ยกเลิก");
+
+            if (userWantsToPickFile)
+            {
+                await PickAndLoadCsvAsync();
+            }
+        }
+    }
+    private async Task PickAndLoadCsvAsync()
+    {
+        try
+        {
+            var customFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+        {
+            { DevicePlatform.iOS, new[] { "public.comma-separated-values-text" } },
+            { DevicePlatform.Android, new[] { "text/comma-separated-values", "text/csv" } },
+            { DevicePlatform.WinUI, new[] { ".csv" } },
+            { DevicePlatform.MacCatalyst, new[] { "public.comma-separated-values-text" } }
+        });
+
+            var options = new PickOptions
+            {
+                PickerTitle = "กรุณาเลือกไฟล์ CSV",
+                FileTypes = customFileType,
+            };
+
+            var result = await FilePicker.Default.PickAsync(options);
+
+            if (result != null)
+            {
+                await LoadCsvDataAsync(result.FullPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            if (Application.Current?.MainPage != null)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", $"ไม่สามารถเปิดหน้าต่างเลือกไฟล์ได้:\n{ex.Message}", "OK");
+            }
         }
     }
 
